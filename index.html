@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="俄羅斯方塊" />
-<title>俄羅斯方塊</title>
+<title>俄羅斯方塊v3</title>
 <style>
   :root{
     --bg:#08111f;
@@ -18,30 +18,30 @@
     --text:#f5f8ff;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-  html,body{margin:0;width:100%;height:100%;min-height:100dvh;overflow:hidden;background:radial-gradient(circle at top,#10213b 0%,var(--bg) 48%,#03070e 100%);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",Arial,sans-serif;color:var(--text)}
-  body{padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
-  .app{width:100%;height:100dvh;max-height:100dvh;display:flex;flex-direction:column;padding:8px 8px calc(6px + env(safe-area-inset-bottom));gap:6px;max-width:520px;margin:0 auto;overflow:hidden}
-  .title{font-size:clamp(24px,7vw,38px);font-weight:900;text-align:center;letter-spacing:3px;text-shadow:0 0 18px rgba(55,135,255,.8);line-height:1.05;flex:0 0 auto}
-  .game{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:7px;align-items:stretch;overflow:hidden}
-  .boardWrap{position:relative;border:2px solid var(--border);border-radius:10px;padding:5px;background:linear-gradient(180deg,rgba(8,20,36,.9),rgba(2,8,16,.96));box-shadow:0 0 18px rgba(0,127,255,.35),inset 0 0 16px rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;overflow:hidden}
+  html,body{margin:0;width:100%;height:100%;min-height:100%;overflow:hidden;background:radial-gradient(circle at top,#10213b 0%,var(--bg) 48%,#03070e 100%);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC",Arial,sans-serif;color:var(--text)}
+  body{position:fixed;inset:0;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);background:radial-gradient(circle at top,#10213b 0%,var(--bg) 48%,#03070e 100%)}
+  .app{width:100%;height:100svh;height:100dvh;display:flex;flex-direction:column;padding:6px 8px max(4px,env(safe-area-inset-bottom));gap:6px;max-width:520px;margin:0 auto;overflow:hidden}
+  .title{font-size:clamp(22px,6.2vw,34px);font-weight:900;text-align:center;letter-spacing:3px;text-shadow:0 0 18px rgba(55,135,255,.8);line-height:1;flex:0 0 auto}
+  .game{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:6px;align-items:stretch}
+  .boardWrap{position:relative;border:2px solid var(--border);border-radius:10px;padding:5px;background:linear-gradient(180deg,rgba(8,20,36,.9),rgba(2,8,16,.96));box-shadow:0 0 18px rgba(0,127,255,.35),inset 0 0 16px rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;min-width:0}
   canvas#board{width:100%;height:100%;display:block;background:#040814;border-radius:5px}
-  .side{display:flex;flex-direction:column;gap:6px;min-width:0;min-height:0;overflow:hidden}
-  .card{border:2px solid var(--border);border-radius:10px;background:rgba(8,18,32,.88);box-shadow:inset 0 0 12px rgba(50,120,255,.14);padding:6px;text-align:center}
-  .stats{display:grid;gap:4px;flex:0 0 auto}.stats hr{width:72%;border:0;border-top:1px solid rgba(160,185,220,.5);margin:1px auto}.label{font-size:13px;font-weight:800;opacity:.95}.value{font-size:24px;font-weight:900;color:#ffb21d;text-shadow:0 0 9px rgba(255,160,0,.4);line-height:1.05}
-  .miniTitle{font-size:16px;font-weight:900;margin-bottom:3px}.nextCanvas{width:70px;height:50px;margin:0 auto;display:block}.help{font-size:11px;line-height:1.55;text-align:left;padding-left:6px;flex:1 1 auto}.help b{font-size:14px;display:block;text-align:center;margin-bottom:4px}.helpRow{display:flex;gap:5px;align-items:center}.key{width:20px;height:20px;border-radius:50%;background:#102440;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:900}
-  .controls,.controlsBottom,.system{flex:0 0 auto}.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.controlsBottom{display:grid;grid-template-columns:1fr 1.15fr;gap:7px}.system{display:grid;grid-template-columns:1fr 1fr;gap:7px}.btn{border:0;border-radius:12px;font-size:25px;font-weight:900;color:white;background:linear-gradient(#ffb21d,#f28a00);box-shadow:0 5px 0 #8c4c00,0 0 12px rgba(255,152,0,.35);height:48px}.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #8c4c00}.btn.blue{background:linear-gradient(#1688ff,#005cea);box-shadow:0 5px 0 #003984,0 0 12px rgba(0,110,255,.45);font-size:20px}.btn.gray{background:linear-gradient(#677286,#374155);box-shadow:0 5px 0 #1c2433;font-size:20px}.footer{font-size:12px;text-align:center;color:#b9c7d9;margin-top:-1px;flex:0 0 auto}
+  .side{display:flex;flex-direction:column;gap:7px;min-width:0}
+  .card{border:2px solid var(--border);border-radius:10px;background:rgba(8,18,32,.88);box-shadow:inset 0 0 12px rgba(50,120,255,.14);padding:6px;text-align:center;overflow:hidden}
+  .stats{display:grid;gap:4px;flex:0 0 auto}.stats hr{width:82%;opacity:.55;margin:2px auto}.label{font-size:13px;font-weight:800;opacity:.95}.value{font-size:24px;font-weight:900;color:#ffb21d;text-shadow:0 0 9px rgba(255,160,0,.4)}
+  .miniTitle{font-size:16px;font-weight:900;margin-bottom:2px}.nextCanvas{width:72px;height:50px;margin:0 auto;display:block}.help{font-size:11px;line-height:1.55;text-align:left;padding-left:6px;flex:1 1 auto}.help b{font-size:14px;display:block;text-align:center;margin-bottom:3px}.helpRow{display:flex;gap:5px;align-items:center}.key{width:20px;height:20px;border-radius:50%;background:#102440;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:900}
+  .controls{flex:0 0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.controlsBottom{flex:0 0 auto;display:grid;grid-template-columns:1fr 1.15fr;gap:7px}.system{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr;gap:7px}.btn{border:0;border-radius:12px;font-size:24px;font-weight:900;color:white;background:linear-gradient(#ffb21d,#f28a00);box-shadow:0 4px 0 #8c4c00,0 0 12px rgba(255,152,0,.35);height:48px}.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #8c4c00}.btn.blue{background:linear-gradient(#1688ff,#005cea);box-shadow:0 5px 0 #003984,0 0 12px rgba(0,110,255,.45);font-size:21px}.btn.gray{background:linear-gradient(#677286,#374155);box-shadow:0 5px 0 #1c2433;font-size:21px}.footer{display:none}
   .overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.58);border-radius:8px;text-align:center;padding:16px}.overlay.show{display:flex}.gameOver{font-size:32px;font-weight:1000;color:#ff5555;text-shadow:0 0 12px rgba(255,0,0,.5)}.overScore{font-size:18px;margin-top:8px;color:white}.hint{font-size:14px;margin-top:10px;color:#d8e2f0}
-  @media (max-height:780px){.app{gap:5px;padding-top:5px}.title{font-size:25px}.game{grid-template-columns:minmax(0,1fr) 104px;gap:6px}.card{padding:5px}.label{font-size:12px}.value{font-size:22px}.miniTitle{font-size:15px}.help{font-size:10.5px;line-height:1.45}.key{width:19px;height:19px}.nextCanvas{width:64px;height:44px}.btn{height:43px;font-size:22px}.btn.blue,.btn.gray{font-size:18px}.footer{display:none}}
-  @media (max-height:700px){.title{font-size:22px}.game{grid-template-columns:minmax(0,1fr) 96px}.help{display:none}.btn{height:39px}.btn.blue,.btn.gray{font-size:17px}}
+  @media (max-height:740px){.app{gap:5px;padding-top:4px}.title{font-size:24px}.btn{height:43px;font-size:22px}.btn.blue,.btn.gray{font-size:18px}.game{grid-template-columns:minmax(0,1fr) 106px;gap:5px}.boardWrap{padding:4px}.card{padding:5px}.value{font-size:22px}.label{font-size:12px}.miniTitle{font-size:15px}.help{font-size:10.5px;line-height:1.45}.nextCanvas{height:44px}.side{gap:5px}}
+  @media (max-height:670px){.title{font-size:22px}.btn{height:39px;font-size:20px}.btn.blue,.btn.gray{font-size:17px}.game{grid-template-columns:minmax(0,1fr) 100px}.value{font-size:20px}.help{font-size:10px}.key{width:18px;height:18px}.nextCanvas{height:40px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="title">俄羅斯方塊</div>
+  <div class="title">俄羅斯方塊v3</div>
   <div class="game">
     <div class="boardWrap">
       <canvas id="board" width="300" height="600"></canvas>
-      <div id="overlay" class="overlay"><div><div class="gameOver">GAME OVER</div><div class="overScore">分數：<span id="finalScore">0</span></div><div class="hint">按「重新開始」再玩一次</div></div></div>
+      <div id="overlay" class="overlay"><div><div class="gameOver">GAME OVER</div><div class="overScore">分數：<span id="finalScore">0</span></div></div></div>
     </div>
     <div class="side">
       <div class="card stats"><div><div class="label">分數</div><div id="score" class="value">0</div></div><hr><div><div class="label">行數</div><div id="lines" class="value" style="color:#66ee22">0</div></div><hr><div><div class="label">等級</div><div id="level" class="value" style="color:#18d8ff">1</div></div></div>
@@ -52,7 +52,7 @@
   <div class="controls"><button class="btn" id="left">←</button><button class="btn" id="rotate">↻</button><button class="btn" id="right">→</button></div>
   <div class="controlsBottom"><button class="btn" id="down">↓</button><button class="btn" id="drop">落下</button></div>
   <div class="system"><button class="btn blue" id="restart">↻ 重新開始</button><button class="btn gray" id="pause">Ⅱ 暫停</button></div>
-  <div class="footer">Safari 開啟後可「加入主畫面」當 App 使用v2.</div>
+  <div class="footer">Safari 開啟後可「加入主畫面」當 App 使用v3</div>
 </div>
 <script>
 const COLS=10, ROWS=20;
