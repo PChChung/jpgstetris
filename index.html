@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="俄羅斯方塊">
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>傳統俄羅斯方塊</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;overflow:hidden;background:#111827;color:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;touch-action:none}body{display:flex;justify-content:center;align-items:center;padding:env(safe-area-inset-top) 10px env(safe-area-inset-bottom)}.app{width:min(100vw,430px);height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:10px 0 14px}.top{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px}.title{font-weight:800;font-size:18px}.stats{display:flex;gap:6px}.stat{background:#1f2937;border:1px solid #374151;border-radius:10px;padding:6px 9px;text-align:center;min-width:58px}.label{font-size:11px;color:#9ca3af}.value{font-size:17px;font-weight:800}.boardWrap{width:100%;display:flex;justify-content:center;align-items:center;min-height:0;flex:1}canvas{width:min(72vw,300px);height:min(calc(72vw * 2),600px);max-height:calc(100dvh - 220px);max-width:calc((100dvh - 220px)/2);background:#020617;border:4px solid #374151;border-radius:8px;box-shadow:0 18px 45px rgba(0,0,0,.35)}.controls{width:100%;display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;padding:0 4px}.btn{height:54px;border:0;border-radius:16px;background:#f59e0b;color:#111827;font-size:22px;font-weight:900;box-shadow:0 4px 0 rgba(0,0,0,.35)}.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.35)}.wide{grid-column:span 3}.smallBtns{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;padding:8px 4px 0}.smallBtns .btn{height:42px;font-size:16px;background:#e5e7eb}.status{height:22px;color:#f87171;font-weight:800;text-align:center}.hint{font-size:12px;color:#cbd5e1;text-align:center;padding-bottom:2px}</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="title">俄羅斯方塊</div>
+    <div class="stats">
+      <div class="stat"><div class="label">分數</div><div id="score" class="value">0</div></div>
+      <div class="stat"><div class="label">行數</div><div id="lines" class="value">0</div></div>
+      <div class="stat"><div class="label">等級</div><div id="level" class="value">1</div></div>
+    </div>
+  </div>
+  <div class="boardWrap"><canvas id="game" width="300" height="600"></canvas></div>
+  <div id="status" class="status"></div>
+  <div class="controls">
+    <button class="btn" data-act="left">←</button><button class="btn" data-act="rotate">旋轉</button><button class="btn" data-act="right">→</button>
+    <button class="btn" data-act="down">↓</button><button class="btn" data-act="drop">落下</button><button class="btn" data-act="pause">暫停</button>
+  </div>
+  <div class="smallBtns"><button class="btn" onclick="restart()">重新開始</button><button class="btn" onclick="togglePause()">暫停 / 繼續</button></div>
+  <div class="hint">Safari 開啟後可「加入主畫面」當 App 使用</div>
+</div>
+<script>
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');const COLS=10,ROWS=20,BLOCK=30;const colors=[null,'#22d3ee','#2563eb','#f97316','#facc15','#22c55e','#a855f7','#ef4444'];const pieces={T:[[0,0,0],[1,1,1],[0,1,0]],O:[[2,2],[2,2]],L:[[0,3,0],[0,3,0],[0,3,3]],J:[[0,4,0],[0,4,0],[4,4,0]],I:[[0,5,0,0],[0,5,0,0],[0,5,0,0],[0,5,0,0]],S:[[0,6,6],[6,6,0],[0,0,0]],Z:[[7,7,0],[0,7,7],[0,0,0]]};let board,player,score,lines,level,dropCounter,dropInterval,lastTime,paused,over;
+function createBoard(){return Array.from({length:ROWS},()=>Array(COLS).fill(0))}function randomPiece(){const keys=Object.keys(pieces);const matrix=pieces[keys[Math.floor(Math.random()*keys.length)]].map(r=>r.slice());return{matrix,pos:{x:Math.floor(COLS/2)-Math.ceil(matrix[0].length/2),y:0}}}function drawBlock(x,y,color){ctx.fillStyle=color;ctx.fillRect(x*BLOCK,y*BLOCK,BLOCK,BLOCK);ctx.strokeStyle='#0f172a';ctx.lineWidth=2;ctx.strokeRect(x*BLOCK,y*BLOCK,BLOCK,BLOCK)}function drawMatrix(matrix,offset){matrix.forEach((row,y)=>row.forEach((value,x)=>{if(value)drawBlock(x+offset.x,y+offset.y,colors[value])}))}function draw(){ctx.fillStyle='#020617';ctx.fillRect(0,0,canvas.width,canvas.height);drawMatrix(board,{x:0,y:0});drawMatrix(player.matrix,player.pos)}function collide(board,player){const m=player.matrix,o=player.pos;for(let y=0;y<m.length;y++)for(let x=0;x<m[y].length;x++)if(m[y][x]&&(board[y+o.y]&&board[y+o.y][x+o.x])!==0)return true;return false}function merge(){player.matrix.forEach((row,y)=>row.forEach((value,x)=>{if(value)board[y+player.pos.y][x+player.pos.x]=value}))}function clearLines(){let cleared=0;outer:for(let y=board.length-1;y>=0;y--){for(let x=0;x<COLS;x++)if(!board[y][x])continue outer;board.splice(y,1);board.unshift(Array(COLS).fill(0));cleared++;y++}if(cleared){lines+=cleared;score+=[0,100,300,500,800][cleared]*level;level=Math.floor(lines/10)+1;dropInterval=Math.max(120,1000-(level-1)*85);updatePanel()}}function rotate(matrix){const N=matrix.length,result=Array.from({length:N},()=>Array(N).fill(0));for(let y=0;y<N;y++)for(let x=0;x<N;x++)result[x][N-1-y]=matrix[y][x];return result}function playerRotate(){const old=player.matrix,oldX=player.pos.x;player.matrix=rotate(player.matrix);let offset=1;while(collide(board,player)){player.pos.x+=offset;offset=-(offset+(offset>0?1:-1));if(Math.abs(offset)>player.matrix[0].length){player.matrix=old;player.pos.x=oldX;return}}}function playerDrop(){player.pos.y++;if(collide(board,player)){player.pos.y--;merge();clearLines();player=randomPiece();if(collide(board,player)){over=true;document.getElementById('status').textContent='遊戲結束'}}dropCounter=0;draw()}function hardDrop(){while(!collide(board,player))player.pos.y++;player.pos.y--;playerDrop()}function playerMove(dir){player.pos.x+=dir;if(collide(board,player))player.pos.x-=dir;draw()}function update(time=0){if(over){draw();return}const delta=time-lastTime;lastTime=time;if(!paused){dropCounter+=delta;if(dropCounter>dropInterval)playerDrop();draw()}requestAnimationFrame(update)}function updatePanel(){scoreEl.textContent=score;linesEl.textContent=lines;levelEl.textContent=level}const scoreEl=document.getElementById('score'),linesEl=document.getElementById('lines'),levelEl=document.getElementById('level');function restart(){board=createBoard();player=randomPiece();score=0;lines=0;level=1;dropCounter=0;dropInterval=1000;lastTime=0;paused=false;over=false;document.getElementById('status').textContent='';updatePanel();draw()}function togglePause(){if(over)return;paused=!paused;document.getElementById('status').textContent=paused?'已暫停':''}
+document.addEventListener('keydown',e=>{if(over)return;if(e.key==='p'||e.key==='P')return togglePause();if(paused)return;if(e.key==='ArrowLeft')playerMove(-1);else if(e.key==='ArrowRight')playerMove(1);else if(e.key==='ArrowDown')playerDrop();else if(e.key==='ArrowUp')playerRotate();else if(e.code==='Space'){e.preventDefault();hardDrop()}});document.querySelectorAll('[data-act]').forEach(btn=>{btn.addEventListener('touchstart',e=>{e.preventDefault();act(btn.dataset.act)},{passive:false});btn.addEventListener('click',()=>act(btn.dataset.act))});function act(a){if(a==='pause')return togglePause();if(over||paused)return;if(a==='left')playerMove(-1);if(a==='right')playerMove(1);if(a==='down')playerDrop();if(a==='rotate')playerRotate();if(a==='drop')hardDrop();draw()}restart();update();
+</script>
+</body>
+</html>
