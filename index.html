@@ -31,7 +31,7 @@ canvas#board{display:block;background:#040814;border-radius:4px;max-width:100%;m
 .stats{display:grid;gap:4px}.stats hr{width:82%;border:0;border-top:1px solid rgba(190,205,225,.55);margin:0 auto}
 .label{font-size:12px;font-weight:900;line-height:1.1}.value{font-size:22px;font-weight:1000;color:#ffb21d;text-shadow:0 0 9px rgba(255,160,0,.45);line-height:1.05}.smallValue{font-size:18px;color:#9fd0ff}
 .miniTitle{font-size:16px;font-weight:1000;margin-bottom:2px}.nextCanvas{width:78px;height:54px;display:block;margin:0 auto}.tip{font-size:11px;line-height:1.35;color:#c6d5e8;text-align:left}.tip b{display:block;text-align:center;color:#fff;font-size:13px;margin-bottom:2px}
-.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.controlsBottom{display:grid;grid-template-columns:1fr 1.12fr;gap:7px}.system{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.controlsBottom{display:grid;grid-template-columns:1fr 1.12fr;gap:7px}.system{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
 .btn{border:0;border-radius:12px;height:48px;font-size:25px;font-weight:1000;color:white;background:linear-gradient(#ffb31e,#f28b00);box-shadow:0 4px 0 #8b4b00,0 0 11px rgba(255,152,0,.33);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
 .controls .btn{height:62px;font-size:34px;border-radius:14px}
 .btn:active,.btn.holding{transform:translateY(2px);box-shadow:0 2px 0 #8b4b00;filter:brightness(.96)}
@@ -39,15 +39,28 @@ canvas#board{display:block;background:#040814;border-radius:4px;max-width:100%;m
 .overlay{position:absolute;inset:5px;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.64);border-radius:8px;text-align:center;padding:16px}.overlay.show{display:flex}.gameOver{font-size:30px;font-weight:1000;color:#ff5555;text-shadow:0 0 12px rgba(255,0,0,.55)}.overScore{font-size:17px;margin-top:8px}.hint{font-size:13px;margin-top:10px;color:#d8e2f0}
 @media (max-height:760px){.app{gap:5px;padding-top:calc(env(safe-area-inset-top) + 4px)}.title{font-size:25px}.game{grid-template-columns:minmax(0,1fr) 90px;gap:6px}.card{padding:5px}.label{font-size:11px}.value{font-size:21px}.smallValue{font-size:16px}.miniTitle{font-size:15px}.nextCanvas{height:47px}.btn{height:44px;font-size:23px}.controls .btn{height:56px;font-size:31px}.btn.blue,.btn.gray{font-size:18px}.tip{display:none}.side{grid-template-rows:auto auto auto}}
 @media (max-height:690px){.title{font-size:22px}.game{grid-template-columns:minmax(0,1fr) 84px;gap:5px}.side{gap:5px}.stats{gap:2px}.value{font-size:19px}.miniTitle{font-size:14px}.nextCanvas{height:42px}.btn{height:39px}.controls .btn{height:50px;font-size:28px}.btn.blue,.btn.gray{font-size:16px}}
+
+.leaderModal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.68);z-index:50;padding:18px}
+.leaderModal.show{display:flex}
+.leaderBox{width:min(92vw,430px);max-height:82vh;overflow:auto;border:2px solid var(--border);border-radius:14px;background:linear-gradient(180deg,#0b1b31,#06101e);box-shadow:0 0 24px rgba(0,120,255,.35);padding:14px}
+.leaderHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.leaderTitle{font-size:22px;font-weight:1000;color:#fff;text-shadow:0 0 12px rgba(80,150,255,.8)}
+.closeBtn,.smallBtn{border:0;border-radius:10px;background:#1a3355;color:#fff;font-weight:900;padding:8px 10px}
+.leaderRow{display:grid;grid-template-columns:34px 1fr 70px;gap:8px;align-items:center;border-bottom:1px solid rgba(180,205,240,.25);padding:8px 2px;font-weight:800}
+.leaderRow.header{color:#9fd0ff;font-size:13px;border-bottom:1px solid rgba(180,205,240,.45)}
+.leaderName{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.leaderStatus{font-size:13px;color:#c6d5e8;line-height:1.5;margin-top:8px}
+@media (max-height:690px){.system{grid-template-columns:1fr 1fr 1fr}.btn.blue,.btn.gray{font-size:14px}}
+
 </style>
 </head>
 <body>
 <div class="app" id="app">
-  <div class="title">俄羅斯方塊V6</div>
+  <div class="title">TETRIS閒時小夥伴</div>
   <div class="game">
     <div class="boardWrap" id="touchArea">
       <canvas id="board" width="300" height="600"></canvas>
-      <div id="overlay" class="overlay"><div><div class="gameOver">GAME OVER</div><div class="overScore">本次分數：<span id="finalScore">0</span></div><div class="overScore">最高分：<span id="finalBest">0</span></div><div class="hint">按「重新開始」再玩一次</div></div></div>
+      <div id="overlay" class="overlay"><div><div class="gameOver">GAME OVER</div><div class="overScore">本次分數：<span id="finalScore">0</span></div><div class="overScore">最高分：<span id="finalBest">0</span></div><div class="hint">按「重新開始」再玩一次</div><div id="onlineStatus" class="hint"></div></div></div>
     </div>
     <div class="side">
       <div class="card stats"><div><div class="label">分數</div><div id="score" class="value">0</div></div><hr><div><div class="label">行數</div><div id="lines" class="value" style="color:#66ee22">0</div></div><hr><div><div class="label">等級</div><div id="level" class="value" style="color:#18d8ff">1</div></div></div>
@@ -58,9 +71,32 @@ canvas#board{display:block;background:#040814;border-radius:4px;max-width:100%;m
   </div>
   <div class="controls"><button class="btn" id="left">←</button><button class="btn" id="rotate">↻</button><button class="btn" id="right">→</button></div>
   <div class="controlsBottom"><button class="btn" id="down">↓</button><button class="btn" id="drop">落下</button></div>
-  <div class="system"><button class="btn blue" id="restart">↻ 重新開始</button><button class="btn gray" id="pause">Ⅱ 暫停</button></div>
+  <div class="system"><button class="btn blue" id="restart">↻ 重新開始</button><button class="btn gray" id="pause">Ⅱ 暫停</button><button class="btn gray" id="rank">排行榜</button></div>
 </div>
+<div id="leaderboardModal" class="leaderModal">
+  <div class="leaderBox">
+    <div class="leaderHead">
+      <div class="leaderTitle">多人積分榜</div>
+      <button id="closeRank" class="closeBtn">關閉</button>
+    </div>
+    <div class="leaderRow header"><div>名次</div><div>玩家</div><div>分數</div></div>
+    <div id="leaderRows"></div>
+    <div class="leaderStatus" id="leaderStatus">尚未設定 Supabase。</div>
+    <button id="changeName" class="smallBtn" style="margin-top:10px">更改玩家名稱</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ===== Supabase 多人積分榜設定 =====
+// 1. 到 Supabase Project Settings → API 複製 Project URL 與 anon public key
+// 2. 貼到下面兩行，保留引號
+const SUPABASE_URL = "PASTE_YOUR_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_KEY";
+const SCORE_TABLE = "tetris_scores";
+const leaderboardReady = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY.length > 30;
+const db = leaderboardReady ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
 function setVH(){const h=window.visualViewport?window.visualViewport.height:window.innerHeight;document.documentElement.style.setProperty('--vh',h+'px')}
 setVH();
 window.addEventListener('resize',()=>{setVH();resizeCanvas()});
@@ -70,7 +106,8 @@ const COLS=10, ROWS=20;
 const canvas=document.getElementById('board'), ctx=canvas.getContext('2d');
 const nextCanvas=document.getElementById('next'), nctx=nextCanvas.getContext('2d');
 const scoreEl=document.getElementById('score'), linesEl=document.getElementById('lines'), levelEl=document.getElementById('level'), bestEl=document.getElementById('best');
-const overlay=document.getElementById('overlay'), finalScore=document.getElementById('finalScore'), finalBest=document.getElementById('finalBest');
+const overlay=document.getElementById('overlay'), finalScore=document.getElementById('finalScore'), finalBest=document.getElementById('finalBest'), onlineStatus=document.getElementById('onlineStatus');
+const leaderboardModal=document.getElementById('leaderboardModal'), leaderRows=document.getElementById('leaderRows'), leaderStatus=document.getElementById('leaderStatus');
 const colors={I:'#00d8ff',J:'#116dff',L:'#ff8d00',O:'#ffd51b',S:'#69e800',T:'#a027ff',Z:'#ff2c24'};
 const shapes={I:[[1,1,1,1]],J:[[1,0,0],[1,1,1]],L:[[0,0,1],[1,1,1]],O:[[1,1],[1,1]],S:[[0,1,1],[1,1,0]],T:[[0,1,0],[1,1,1]],Z:[[1,1,0],[0,1,1]]};
 let board,piece,nextPiece,score,lines,level,best,dropCounter,dropInterval,lastTime,paused,gameOver,clearing,clearingRows,raf;
@@ -89,12 +126,45 @@ function fullRows(){const rows=[];for(let y=0;y<ROWS;y++){if(board[y].every(Bool
 function finishClear(rows){rows.sort((a,b)=>b-a).forEach(y=>{board.splice(y,1);board.unshift(Array(COLS).fill(null))});const count=rows.length;score += [0,100,300,500,800][count] || count*250;lines += count;level=Math.floor(lines/10)+1;dropInterval=Math.max(110,700-(level-1)*55);clearing=false;clearingRows=[];updateUI();spawn();draw()}
 function lockPiece(){merge();const rows=fullRows();if(rows.length){clearing=true;clearingRows=rows;draw();setTimeout(()=>finishClear(rows),170)}else{spawn();draw()}}
 function updateUI(){scoreEl.textContent=score;linesEl.textContent=lines;levelEl.textContent=level;if(score>best){best=score;localStorage.setItem('tetrisBestScore',String(best))}bestEl.textContent=best}
-function spawn(){piece=nextPiece||randomPiece();nextPiece=randomPiece();piece.x=Math.floor(COLS/2)-Math.ceil(piece.matrix[0].length/2);piece.y=0;drawNext();if(collide(board,piece)){gameOver=true;updateUI();overlay.classList.add('show');finalScore.textContent=score;finalBest.textContent=best}}
+
+function safeName(name){return String(name||'玩家').trim().slice(0,16).replace(/[<>]/g,'') || '玩家'}
+function getPlayerName(){
+  let name=localStorage.getItem('tetrisPlayerName');
+  if(!name){name=prompt('請輸入排行榜名稱（最多16字）','玩家');localStorage.setItem('tetrisPlayerName',safeName(name));}
+  return safeName(localStorage.getItem('tetrisPlayerName'));
+}
+async function submitScoreOnline(){
+  if(!leaderboardReady || !db || score<=0){onlineStatus.textContent=leaderboardReady?'':'尚未連接 Supabase';return}
+  try{
+    onlineStatus.textContent='分數上傳中...';
+    const player_name=getPlayerName();
+    const {error}=await db.from(SCORE_TABLE).insert({player_name,score,lines,level});
+    if(error)throw error;
+    onlineStatus.textContent='分數已送出排行榜';
+    loadLeaderboard(false);
+  }catch(err){onlineStatus.textContent='排行榜上傳失敗：'+(err.message||err)}
+}
+async function loadLeaderboard(show=true){
+  if(show)leaderboardModal.classList.add('show');
+  leaderRows.innerHTML='';
+  if(!leaderboardReady || !db){leaderStatus.textContent='請先在 HTML 內填入 Supabase URL 與 anon key。';return}
+  leaderStatus.textContent='讀取中...';
+  try{
+    const {data,error}=await db.from(SCORE_TABLE).select('player_name,score,lines,level,created_at').order('score',{ascending:false}).limit(10);
+    if(error)throw error;
+    if(!data || !data.length){leaderStatus.textContent='目前還沒有排行榜資料。';return}
+    leaderRows.innerHTML=data.map((r,i)=>`<div class="leaderRow"><div>#${i+1}</div><div class="leaderName">${safeName(r.player_name)}<span style="font-size:11px;color:#9fb2c9">　${r.lines||0}行 Lv.${r.level||1}</span></div><div>${r.score||0}</div></div>`).join('');
+    leaderStatus.textContent='只顯示前 10 名。';
+  }catch(err){leaderStatus.textContent='讀取失敗：'+(err.message||err)}
+}
+function changePlayerName(){const old=localStorage.getItem('tetrisPlayerName')||'玩家';const name=prompt('請輸入新的玩家名稱（最多16字）',old);if(name!==null)localStorage.setItem('tetrisPlayerName',safeName(name))}
+
+function spawn(){piece=nextPiece||randomPiece();nextPiece=randomPiece();piece.x=Math.floor(COLS/2)-Math.ceil(piece.matrix[0].length/2);piece.y=0;drawNext();if(collide(board,piece)){gameOver=true;updateUI();overlay.classList.add('show');finalScore.textContent=score;finalBest.textContent=best;submitScoreOnline()}}
 function drop(){if(paused||gameOver||clearing)return;piece.y++;if(collide(board,piece)){piece.y--;lockPiece()}dropCounter=0;draw()}
 function hardDrop(){if(paused||gameOver||clearing)return;while(!collide(board,piece))piece.y++;piece.y--;score+=2;updateUI();lockPiece()}
 function move(dir){if(paused||gameOver||clearing)return;piece.x+=dir;if(collide(board,piece))piece.x-=dir;draw()}
 function loop(time=0){const delta=time-lastTime;lastTime=time;if(!paused&&!gameOver&&!clearing){dropCounter+=delta;if(dropCounter>dropInterval)drop();draw()}raf=requestAnimationFrame(loop)}
-function restart(){cancelAnimationFrame(raf);board=createBoard();piece=null;nextPiece=randomPiece();score=0;lines=0;level=1;best=parseInt(localStorage.getItem('tetrisBestScore')||'0',10);dropCounter=0;dropInterval=700;lastTime=0;paused=false;gameOver=false;clearing=false;clearingRows=[];overlay.classList.remove('show');document.getElementById('pause').textContent='Ⅱ 暫停';updateUI();setVH();resizeCanvas();spawn();draw();loop()}
+function restart(){cancelAnimationFrame(raf);board=createBoard();piece=null;nextPiece=randomPiece();score=0;lines=0;level=1;best=parseInt(localStorage.getItem('tetrisBestScore')||'0',10);dropCounter=0;dropInterval=700;lastTime=0;paused=false;gameOver=false;clearing=false;clearingRows=[];overlay.classList.remove('show');onlineStatus.textContent='';document.getElementById('pause').textContent='Ⅱ 暫停';updateUI();setVH();resizeCanvas();spawn();draw();loop()}
 function togglePause(){if(gameOver)return;paused=!paused;document.getElementById('pause').textContent=paused?'▶ 繼續':'Ⅱ 暫停'}
 function bindHold(id,action,interval=95,delay=170){
   const btn=document.getElementById(id);let timer=null,delayTimer=null;
@@ -110,6 +180,9 @@ document.getElementById('rotate').addEventListener('pointerdown',e=>{e.preventDe
 document.getElementById('drop').addEventListener('pointerdown',e=>{e.preventDefault();hardDrop()},{passive:false});
 document.getElementById('restart').addEventListener('pointerdown',e=>{e.preventDefault();restart()},{passive:false});
 document.getElementById('pause').addEventListener('pointerdown',e=>{e.preventDefault();togglePause()},{passive:false});
+document.getElementById('rank').addEventListener('pointerdown',e=>{e.preventDefault();loadLeaderboard(true)},{passive:false});
+document.getElementById('closeRank').addEventListener('pointerdown',e=>{e.preventDefault();leaderboardModal.classList.remove('show')},{passive:false});
+document.getElementById('changeName').addEventListener('pointerdown',e=>{e.preventDefault();changePlayerName()},{passive:false});
 document.addEventListener('selectstart',e=>e.preventDefault());
 document.addEventListener('contextmenu',e=>e.preventDefault());
 let sx=0,sy=0,lastSwipeTime=0,gestureMoved=false;const area=document.getElementById('touchArea');
