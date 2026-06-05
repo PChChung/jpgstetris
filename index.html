@@ -56,7 +56,7 @@ canvas#board{display:block;background:#040814;border-radius:4px;max-width:100%;m
 </head>
 <body>
 <div class="app" id="app">
-  <div class="title">TETRIS閒時小夥伴</div>
+  <div class="title">TETRIS RestPartner</div>
   <div class="game">
     <div class="boardWrap" id="touchArea">
       <canvas id="board" width="300" height="600"></canvas>
@@ -91,8 +91,8 @@ canvas#board{display:block;background:#040814;border-radius:4px;max-width:100%;m
 // ===== Supabase 多人積分榜設定 =====
 // 1. 到 Supabase Project Settings → API 複製 Project URL 與 anon public key
 // 2. 貼到下面兩行，保留引號
-const SUPABASE_URL = "https://biidjlogfpdlrambehhq.supabase.co/rest/v1/";
-const SUPABASE_ANON_KEY = "biidjlogfpdlrambehhq";
+const SUPABASE_URL = "https://biidjlogfpdlrambehhq.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpaWRqbG9nZnBkbHJhbWJlaGhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA2NDUzMzksImV4cCI6MjA5NjIyMTMzOX0.Dl0Lxyht0CaZogtLaBNibd81734vbpAIsh8-mabs2tI";
 const SCORE_TABLE = "tetris_scores";
 const leaderboardReady = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY.length > 30;
 const db = leaderboardReady ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
