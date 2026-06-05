@@ -91,8 +91,8 @@ canvas#board{display:block;background:#040814;border-radius:4px;max-width:100%;m
 // ===== Supabase 多人積分榜設定 =====
 // 1. 到 Supabase Project Settings → API 複製 Project URL 與 anon public key
 // 2. 貼到下面兩行，保留引號
-const SUPABASE_URL = "PASTE_YOUR_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "PASTE_YOUR_SUPABASE_ANON_KEY";
+const SUPABASE_URL = "https://biidjlogfpdlrambehhq.supabase.co/rest/v1/";
+const SUPABASE_ANON_KEY = "biidjlogfpdlrambehhq";
 const SCORE_TABLE = "tetris_scores";
 const leaderboardReady = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY.length > 30;
 const db = leaderboardReady ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
