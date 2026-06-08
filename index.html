@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="俄羅斯方塊" />
-<title>俄羅斯方塊 v10.3</title>
+<title>俄羅斯方塊 v10.4</title>
 <style>
 :root{--vh:100vh;--bg:#071120;--panel:#091525;--line:rgba(155,175,210,.42);--border:#557aa7;--orange:#ff9900;--blue:#0b7dff;--text:#f6f8ff;--red:#ff5555;--green:#66ee22}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none}
@@ -27,7 +27,7 @@ body::before{content:"";position:fixed;inset:0;background:radial-gradient(circle
       <button class="btn green" id="battleBtn">⚔️ 玩家對戰</button>
       <button class="btn gray" id="menuRankBtn">🏆 排行榜</button>
     </div>
-    <div class="small">v10.3：垃圾行改用事件佇列，避免重複與爆量</div>
+    <div class="small">v10.4：垃圾行改為「安全套用」，避免方塊消失與爆量</div>
   </div>
 </div>
 <div class="modal hide" id="lobby">
@@ -63,7 +63,7 @@ const colors={I:'#00d8ff',J:'#116dff',L:'#ff8d00',O:'#ffd51b',S:'#69e800',T:'#a0
 let mode='single',board,piece,nextPiece,score,lines,level,dropCounter,dropInterval,lastTime,paused,gameOver,raf,submitted=false;
 let lastAppliedGarbage=0;
 let room=null,myPlayer=null,opponent=null,battleChannel=null,syncTimer=null,playerName=localStorage.getItem('tetrisPlayerName')||'玩家';
-let garbageQueue=0, garbageTimer=null, applyingGarbage=false, garbageConsuming=false, consumedEventIds=new Set();
+let garbageQueue=0, garbageConsuming=false, consumedEventIds=new Set(), currentGameStartedAt=null;
 document.getElementById('playerName').value=playerName;bestScoreEl.textContent=localStorage.getItem('tetrisBestScore')||0;
 function safeName(n){return String(n||'玩家').trim().slice(0,16).replace(/[<>]/g,'')||'玩家'}function code(){return Math.random().toString(36).slice(2,8).toUpperCase()}function createBoard(){return Array.from({length:ROWS},()=>Array(COLS).fill(null))}function randomPiece(){const ks=Object.keys(shapes),type=ks[Math.floor(Math.random()*ks.length)];return{type,matrix:shapes[type].map(r=>r.slice()),x:Math.floor(COLS/2)-2,y:0}}
 function resizeCanvas(){const wrap=canvas.parentElement;if(!wrap)return;const maxW=wrap.clientWidth-10,maxH=wrap.clientHeight-10;const cell=Math.max(10,Math.floor(Math.min(maxW/COLS,maxH/ROWS)));canvas.style.width=(cell*COLS)+'px';canvas.style.height=(cell*ROWS)+'px'}
@@ -91,15 +91,16 @@ async function sendGarbage(cleared){
   }
 }
 async function consumeIncomingGarbage(){
-  if(!db||!myPlayer||garbageConsuming||gameOver||mode!=='battle')return;
+  if(!db||!myPlayer||garbageConsuming||gameOver||mode!=='battle'||!currentGameStartedAt)return;
   garbageConsuming=true;
   try{
     const {data,error}=await db.from('garbage_events')
-      .select('id,amount')
+      .select('id,amount,created_at')
       .eq('target_player_id',myPlayer.id)
       .eq('consumed',false)
+      .gt('created_at',currentGameStartedAt)
       .order('created_at',{ascending:true})
-      .limit(8);
+      .limit(12);
     if(error)throw error;
     const fresh=(data||[]).filter(e=>!consumedEventIds.has(e.id));
     if(fresh.length){
@@ -112,22 +113,36 @@ async function consumeIncomingGarbage(){
   }catch(e){
     onlineStatus.textContent='接收垃圾行失敗：請確認 garbage_events 權限設定。';
   }finally{
-    setTimeout(()=>{garbageConsuming=false},120);
+    garbageConsuming=false;
   }
 }
-function enqueueGarbage(n){if(!n||n<=0||gameOver)return;garbageQueue+=n;onlineStatus.textContent=`收到 ${n} 行垃圾攻擊，準備加入...`;processGarbageQueue()}
-function processGarbageQueue(){if(applyingGarbage||garbageQueue<=0||gameOver)return;applyingGarbage=true;clearInterval(garbageTimer);garbageTimer=setInterval(()=>{
-  if(garbageQueue<=0||gameOver){clearInterval(garbageTimer);applyingGarbage=false;syncNow(true);return}
-  applyOneGarbageRow();garbageQueue--;draw();onlineStatus.textContent=`垃圾行加入中：剩 ${garbageQueue} 行`;
-  if(garbageQueue<=0){clearInterval(garbageTimer);applyingGarbage=false;syncNow(true)}
-},180)}
-function applyOneGarbageRow(){let overflow=board[0].some(Boolean);board.shift();const hole=Math.floor(Math.random()*COLS);const row=Array.from({length:COLS},(_,x)=>x===hole?null:'#5d6678');board.push(row);if(overflow)endGame(false)}
+function enqueueGarbage(n){
+  if(!n||n<=0||gameOver)return;
+  garbageQueue=Math.min(12,garbageQueue+n);
+  onlineStatus.textContent=`收到 ${n} 行垃圾攻擊，將在下一個方塊落地後加入`;
+}
+function applyQueuedGarbageSafely(){
+  if(garbageQueue<=0||gameOver)return;
+  const amount=Math.min(4,garbageQueue);
+  for(let i=0;i<amount;i++){
+    if(board[0].some(Boolean)){endGame(false);break}
+    board.shift();
+    const hole=Math.floor(Math.random()*COLS);
+    const row=Array.from({length:COLS},(_,x)=>x===hole?null:'#5d6678');
+    board.push(row);
+    garbageQueue--;
+  }
+  if(!gameOver)onlineStatus.textContent=garbageQueue>0?`已加入 ${amount} 行垃圾，剩 ${garbageQueue} 行待加入`:`已加入 ${amount} 行垃圾`;
+  syncNow(true);
+}
 function applyGarbageRows(n){enqueueGarbage(n)}
+{enqueueGarbage(n)}
 async function sweep(){let cleared=0,rowCount=1;outer:for(let y=ROWS-1;y>=0;y--){for(let x=0;x<COLS;x++)if(!board[y][x])continue outer;board.splice(y,1);board.unshift(Array(COLS).fill(null));score+=rowCount*100;lines++;cleared++;rowCount*=2;y++}level=Math.floor(lines/10)+1;dropInterval=Math.max(95,700-(level-1)*55);updateUI();if(cleared>0)await sendGarbage(cleared);return cleared}function updateUI(){scoreEl.textContent=score;linesEl.textContent=lines;levelEl.textContent=level}
-function spawn(){piece=nextPiece||randomPiece();nextPiece=randomPiece();piece.x=Math.floor(COLS/2)-Math.ceil(piece.matrix[0].length/2);piece.y=0;drawNext();if(collide(board,piece)){endGame(false)}}async function drop(){if(paused||gameOver)return;piece.y++;if(collide(board,piece)){piece.y--;merge();await sweep();spawn()}dropCounter=0;draw();syncNow()}async function hardDrop(){if(paused||gameOver)return;while(!collide(board,piece))piece.y++;piece.y--;score+=2;merge();await sweep();spawn();draw();syncNow()}function move(dir){if(paused||gameOver)return;piece.x+=dir;if(collide(board,piece))piece.x-=dir;draw();syncNow()}
+function spawn(){piece=nextPiece||randomPiece();nextPiece=randomPiece();piece.x=Math.floor(COLS/2)-Math.ceil(piece.matrix[0].length/2);piece.y=0;drawNext();if(collide(board,piece)){endGame(false)}}async function lockPiece(){merge();await sweep();await consumeIncomingGarbage();applyQueuedGarbageSafely();if(!gameOver)spawn();}
+async function drop(){if(paused||gameOver)return;piece.y++;if(collide(board,piece)){piece.y--;await lockPiece()}dropCounter=0;draw();syncNow()}async function hardDrop(){if(paused||gameOver)return;while(!collide(board,piece))piece.y++;piece.y--;score+=2;await lockPiece();draw();syncNow()}function move(dir){if(paused||gameOver)return;piece.x+=dir;if(collide(board,piece))piece.x-=dir;draw();syncNow()}
 function loop(t=0){const d=t-lastTime;lastTime=t;if(!paused&&!gameOver){dropCounter+=d;if(dropCounter>dropInterval)drop();draw()}raf=requestAnimationFrame(loop)}
-function startGame(m){mode=m;lastAppliedGarbage=0;document.getElementById('menu').classList.add('hide');document.getElementById('lobby').classList.add('hide');document.getElementById('app').classList.toggle('singleMode',mode==='single');document.getElementById('oppCard').classList.toggle('hide',mode==='single');document.getElementById('singleCard').classList.toggle('hide',mode!=='single');document.getElementById('rankOrLeave').textContent='返回選單';document.getElementById('modeTag').textContent=mode==='single'?'單人模式':`對戰模式 ${room?room.room_code:''}`;restart()}
-function restart(){cancelAnimationFrame(raf);board=createBoard();piece=null;nextPiece=randomPiece();score=0;lines=0;level=1;garbageQueue=0;applyingGarbage=false;garbageConsuming=false;clearInterval(garbageTimer);lastAppliedGarbage=0;consumedEventIds.clear();dropCounter=0;dropInterval=700;lastTime=0;paused=false;gameOver=false;submitted=false;overlay.classList.remove('show');resultTitle.className='gameOver';resultTitle.textContent='GAME OVER';extraScore.textContent='';onlineStatus.textContent='';document.getElementById('pause').textContent='Ⅱ 暫停';updateUI();resizeCanvas();spawn();draw();syncNow();loop()}
+function startGame(m){mode=m;lastAppliedGarbage=0;currentGameStartedAt=new Date().toISOString();document.getElementById('menu').classList.add('hide');document.getElementById('lobby').classList.add('hide');document.getElementById('app').classList.toggle('singleMode',mode==='single');document.getElementById('oppCard').classList.toggle('hide',mode==='single');document.getElementById('singleCard').classList.toggle('hide',mode!=='single');document.getElementById('rankOrLeave').textContent='返回選單';document.getElementById('modeTag').textContent=mode==='single'?'單人模式':`對戰模式 ${room?room.room_code:''}`;restart()}
+function restart(){cancelAnimationFrame(raf);board=createBoard();piece=null;nextPiece=randomPiece();score=0;lines=0;level=1;garbageQueue=0;garbageConsuming=false;lastAppliedGarbage=0;consumedEventIds.clear();currentGameStartedAt=new Date().toISOString();dropCounter=0;dropInterval=700;lastTime=0;paused=false;gameOver=false;submitted=false;overlay.classList.remove('show');resultTitle.className='gameOver';resultTitle.textContent='GAME OVER';extraScore.textContent='';onlineStatus.textContent='';document.getElementById('pause').textContent='Ⅱ 暫停';updateUI();resizeCanvas();spawn();draw();syncNow();loop()}
 async function endGame(win){if(gameOver)return;gameOver=true;finalScore.textContent=score;overlay.classList.add('show');if(mode==='single'){let best=Number(localStorage.getItem('tetrisBestScore')||0);if(score>best){best=score;localStorage.setItem('tetrisBestScore',best);bestScoreEl.textContent=best;extraScore.textContent='新最高分：'+best}else extraScore.textContent='最高分：'+best;onlineStatus.textContent='可按「重新開始」再玩一次';await submitScore()}else{await syncNow(true);const oppScore=opponent?.score||0;extraScore.textContent='對手分數：'+oppScore;if(win){resultTitle.className='winText';resultTitle.textContent='YOU WIN'}else{resultTitle.className='gameOver';resultTitle.textContent='GAME OVER'}onlineStatus.textContent='可按「重新開始」再玩一次'}}
 async function submitScore(){if(submitted||!ready||!db||score<=0)return;submitted=true;const name=safeName(localStorage.getItem('tetrisPlayerName')||prompt('請輸入排行榜名稱','玩家'));localStorage.setItem('tetrisPlayerName',name);try{await db.from(SCORE_TABLE).insert({player_name:name,score,lines,level});onlineStatus.textContent='分數已送出排行榜'}catch(e){onlineStatus.textContent='排行榜上傳失敗：'+(e.message||e)}}
 function togglePause(){if(gameOver)return;paused=!paused;document.getElementById('pause').textContent=paused?'▶ 繼續':'Ⅱ 暫停'}
@@ -135,9 +150,9 @@ async function openRank(){document.getElementById('leaderboardModal').classList.
 function getName(){const n=safeName(document.getElementById('playerName').value||'玩家');localStorage.setItem('tetrisPlayerName',n);return n}function showLobbyStatus(s){document.getElementById('lobbyStatus').textContent=s}async function createRoom(){if(!ready||!db)return showLobbyStatus('請先填入 Supabase URL 與 anon key。');try{const rc=code();const {data:r,error:re}=await db.from('rooms').insert({room_code:rc,status:'waiting',started:false}).select().single();if(re)throw re;const {data:p,error:pe}=await db.from('players').insert({room_id:r.id,player_name:getName(),is_host:true,is_ready:true,score:0,lines:0,level:1,game_over:false,board:createBoard()}).select().single();if(pe)throw pe;room=r;myPlayer=p;await afterRoomJoin()}catch(e){showLobbyStatus('建立失敗：'+(e.message||e))}}
 async function joinRoom(){if(!ready||!db)return showLobbyStatus('請先填入 Supabase URL 與 anon key。');const rc=(document.getElementById('joinCode').value||'').trim().toUpperCase();if(!rc)return showLobbyStatus('請輸入房號。');try{const {data:r,error:re}=await db.from('rooms').select('*').eq('room_code',rc).single();if(re||!r)throw new Error('找不到房間');const {data:ps}=await db.from('players').select('*').eq('room_id',r.id);if(ps&&ps.length>=2)throw new Error('房間已滿');const {data:p,error:pe}=await db.from('players').insert({room_id:r.id,player_name:getName(),is_host:false,is_ready:true,score:0,lines:0,level:1,game_over:false,board:createBoard()}).select().single();if(pe)throw pe;room=r;myPlayer=p;await afterRoomJoin()}catch(e){showLobbyStatus('加入失敗：'+(e.message||e))}}
 async function afterRoomJoin(){document.getElementById('lobbyWaiting').style.display='block';document.getElementById('roomCodeView').textContent=room.room_code;document.getElementById('startBattle').style.display=myPlayer.is_host?'block':'none';showLobbyStatus(myPlayer.is_host?'等待玩家加入，兩人到齊後按開始遊戲。':'等待房主開始遊戲，若房主開始後沒有跳轉，請檢查 rooms_update policy。');subscribeRoom();await refreshRoom()}
-async function refreshRoom(){if(!room||!db)return;const {data:ps}=await db.from('players').select('*').eq('room_id',room.id);const {data:r}=await db.from('rooms').select('*').eq('id',room.id).single();if(r)room=r;if(ps){const me=ps.find(p=>p.id===myPlayer?.id);if(me){myPlayer={...myPlayer,...me};if(mode==='battle'&&!gameOver){consumeIncomingGarbage()}}opponent=ps.find(p=>p.id!==myPlayer.id)||null;document.getElementById('playerList').innerHTML=ps.map(p=>`${p.is_host?'👑 ':'• '}${safeName(p.player_name)}　${p.is_ready?'✓':'-'}`).join('<br>');drawOpponent()}if(room.started&&!document.getElementById('lobby').classList.contains('hide'))startGame('battle')}
+async function refreshRoom(){if(!room||!db)return;const {data:ps}=await db.from('players').select('*').eq('room_id',room.id);const {data:r}=await db.from('rooms').select('*').eq('id',room.id).single();if(r)room=r;if(ps){const me=ps.find(p=>p.id===myPlayer?.id);if(me){myPlayer={...myPlayer,...me};}opponent=ps.find(p=>p.id!==myPlayer.id)||null;document.getElementById('playerList').innerHTML=ps.map(p=>`${p.is_host?'👑 ':'• '}${safeName(p.player_name)}　${p.is_ready?'✓':'-'}`).join('<br>');drawOpponent()}if(room.started&&!document.getElementById('lobby').classList.contains('hide'))startGame('battle')}
 function subscribeRoom(){if(battleChannel)db.removeChannel(battleChannel);battleChannel=db.channel('room_'+room.id).on('postgres_changes',{event:'*',schema:'public',table:'players',filter:`room_id=eq.${room.id}`},refreshRoom).on('postgres_changes',{event:'*',schema:'public',table:'rooms',filter:`id=eq.${room.id}`},refreshRoom).subscribe()}async function startBattle(){if(!myPlayer?.is_host)return;const {error}=await db.from('rooms').update({started:true,status:'playing'}).eq('id',room.id);if(error){showLobbyStatus('開始失敗：rooms 缺少 UPDATE 權限，請先新增 rooms_update policy。');return;}room.started=true;room.status='playing';startGame('battle')}async function syncNow(force=false){if(mode!=='battle'||!db||!myPlayer||(!force&&gameOver))return;const payload={score,lines,level,game_over:gameOver,board,updated_at:new Date().toISOString()};try{await db.from('players').update(payload).eq('id',myPlayer.id)}catch(e){}}
-function startSyncTimer(){clearInterval(syncTimer);syncTimer=setInterval(async()=>{if(mode==='battle'){await refreshRoom();await consumeIncomingGarbage();if(opponent?.game_over&&!gameOver)endGame(true);else syncNow()}},220)}startSyncTimer();
+function startSyncTimer(){clearInterval(syncTimer);syncTimer=setInterval(async()=>{if(mode==='battle'){await refreshRoom();await consumeIncomingGarbage();if(opponent?.game_over&&!gameOver)endGame(true);else syncNow()}},350)}startSyncTimer();
 function bindHold(id,fn,repeat=105){const el=document.getElementById(id);let timer=null,delay=null;const start=e=>{e.preventDefault();fn();el.classList.add('holding');clearInterval(timer);clearTimeout(delay);delay=setTimeout(()=>{timer=setInterval(fn,repeat)},170)};const stop=e=>{if(e)e.preventDefault();el.classList.remove('holding');clearInterval(timer);clearTimeout(delay)};el.addEventListener('pointerdown',start,{passive:false});['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>el.addEventListener(ev,stop,{passive:false}))}
 bindHold('left',()=>move(-1),90);bindHold('right',()=>move(1),90);bindHold('down',drop,75);document.getElementById('rotate').addEventListener('pointerdown',e=>{e.preventDefault();rotate()},{passive:false});document.getElementById('drop').addEventListener('pointerdown',e=>{e.preventDefault();hardDrop()},{passive:false});function goMainMenu(){paused=true;cancelAnimationFrame(raf);overlay.classList.remove('show');document.getElementById('lobby').classList.add('hide');document.getElementById('menu').classList.remove('hide');if(battleChannel&&db){db.removeChannel(battleChannel);battleChannel=null}room=null;myPlayer=null;opponent=null;document.getElementById('modeTag').textContent='單人模式';document.getElementById('rankOrLeave').textContent='返回選單'}
 document.getElementById('restart').onclick=restart;document.getElementById('pause').onclick=togglePause;document.getElementById('rankOrLeave').onclick=goMainMenu;document.getElementById('singleBtn').onclick=()=>startGame('single');document.getElementById('battleBtn').onclick=()=>{document.getElementById('menu').classList.add('hide');document.getElementById('lobby').classList.remove('hide')};document.getElementById('menuRankBtn').onclick=openRank;document.getElementById('createRoom').onclick=createRoom;document.getElementById('joinRoom').onclick=joinRoom;document.getElementById('startBattle').onclick=startBattle;document.getElementById('backMenu').onclick=goMainMenu;document.getElementById('copyRoom').onclick=async()=>{const text=(document.getElementById('roomCodeView').textContent||'').trim();if(!text||text==='------')return showLobbyStatus('目前沒有可複製的房間代碼。');try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text)}else{const tmp=document.createElement('input');tmp.value=text;document.body.appendChild(tmp);tmp.select();document.execCommand('copy');tmp.remove()}showLobbyStatus('房間代碼已複製：'+text)}catch(e){showLobbyStatus('複製失敗，請手動複製：'+text)}};document.getElementById('closeRank').onclick=()=>document.getElementById('leaderboardModal').classList.remove('show');
