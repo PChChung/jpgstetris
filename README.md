@@ -24,6 +24,7 @@ games/tetris/
   main.js             操作、畫面流程
 games/starguard/      星艦防線（射擊，20 波）：game.js 規則與繪圖、levels.js 隊形
 games/bubbles/        泡泡連發（益智，20 關）：game.js 規則與繪圖、levels.js 盤面設定
+games/dotmaze/        光點迷宮（迷宮追逐，20 關）：game.js 迷宮產生、巡邏機 AI 與繪圖、levels.js 關卡
 supabase/
   001_game_library.sql        新排行榜表與 submit_score()，並搬移舊資料
   002_retire_legacy_tables.sql 新版上線後停用舊表

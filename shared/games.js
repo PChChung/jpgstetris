@@ -33,4 +33,14 @@ export const GAMES = [
     levels: 20,
     art: ['ZZOO', 'SZOI', 'SSII', '.T..', '....', '.Z..'],
   },
+  {
+    id: 'dotmaze',
+    title: '光點迷宮',
+    description: '在迷宮裡收集所有光點，避開四種巡邏機；撿到電池就能反過來把它們撞回基地。',
+    path: 'games/dotmaze/',
+    tags: ['關卡挑戰', '迷宮'],
+    accent: '#5ee0a0',
+    levels: 20,
+    art: ['TTTTT', 'T...T', 'T.S.T', 'T...T', 'TT.TT', '..Z..'],
+  },
 ];

@@ -74,6 +74,13 @@ html, body { height: 100%; overflow: hidden; }
 .dpad .dhub { grid-area: 1 / 2; }
 .dpad .right { grid-area: 1 / 3; border-radius: 0 14px 14px 0; }
 .dpad .down { grid-area: 2 / 2; border-radius: 0 0 14px 14px; }
+/* 上下左右都有的十字鍵 */
+.dpad.cross { --k: clamp(44px, 13vw, 54px); grid-template-rows: repeat(3, var(--k)); }
+.dpad.cross .up { grid-area: 1 / 2; border-radius: 14px 14px 0 0; }
+.dpad.cross .left { grid-area: 2 / 1; }
+.dpad.cross .dhub { grid-area: 2 / 2; }
+.dpad.cross .right { grid-area: 2 / 3; }
+.dpad.cross .down { grid-area: 3 / 2; }
 /* 只有左右兩鍵的橫條 */
 .lrKeys { display: grid; grid-template-columns: 1fr 1fr; flex: 1; height: var(--k); filter: drop-shadow(0 4px 0 var(--shell-lo)); }
 .lrKeys .left { border-radius: 14px 0 0 14px; border-right: 2px solid var(--shell-lo); }
