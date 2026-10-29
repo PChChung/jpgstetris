@@ -1,16 +1,27 @@
-/* 遊戲庫共用樣式：色票、按鈕、對話框、排行榜 */
+/* 遊戲庫共用樣式：掌機風格。外殼是靛紫塑膠，內容放在嵌入的深色螢幕裡 */
+@import url('https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;700;900&family=Silkscreen:wght@400;700&display=swap');
+
 :root {
   --vh: 100vh;
-  --bg: #071120;
-  --panel: #091525;
-  --border: #557aa7;
-  --text: #f6f8ff;
-  --muted: #9fb2c9;
-  --accent: #9fd0ff;
-  --gold: #ffb21d;
-  --red: #ff5555;
-  --green: #66ee22;
-  --cyan: #18d8ff;
+  --shell: #3a3366;       /* 機殼 */
+  --shell-hi: #4b4384;    /* 機殼受光面 */
+  --shell-lo: #2b2650;    /* 機殼陰影 */
+  --bezel: #1f1c38;       /* 螢幕外框 */
+  --lcd: #111827;         /* 螢幕 */
+  --lcd-line: #26304a;
+  --ink: #f3f1fb;         /* 機殼上的字 */
+  --ink-soft: #b9b3dc;
+  --lcd-ink: #d9f2e4;     /* 螢幕上的字 */
+  --lcd-dim: #7f9a8d;
+  --key: #e4e1ef;         /* 淺色塑膠按鍵 */
+  --key-shade: #a9a4c4;
+  --key-ink: #2a2747;
+  --yellow: #ffc83d;
+  --pink: #ff5c8a;
+  --mint: #5ee0a0;
+  --red: #ff6b6b;
+  --font: "Chiron GoRound TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --pixel: "Silkscreen", "Chiron GoRound TC", monospace;
 }
 
 * {
@@ -18,64 +29,73 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+html {
+  background: var(--shell);
 }
 
-html { background: var(--bg); }
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at top, #142845 0%, #071120 52%, #03070e 100%);
-  z-index: -1;
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--ink);
+  font-family: var(--font);
+  font-weight: 700;
+  /* 塑膠表面的細微顆粒 */
+  background:
+    radial-gradient(circle at 20% 0%, var(--shell-hi), transparent 55%),
+    var(--shell);
 }
 
 .hide { display: none !important; }
 
-/* 按鈕 */
+:focus-visible {
+  outline: 3px solid var(--yellow);
+  outline-offset: 2px;
+}
+
+/* 按鈕：淺色塑膠鍵，按下會沉下去 */
 .btn {
   border: 0;
-  border-radius: 14px;
-  min-height: 52px;
-  padding: 0 14px;
+  border-radius: 12px;
+  min-height: 50px;
+  padding: 0 16px;
   font: inherit;
   font-size: 17px;
   font-weight: 900;
-  color: #fff;
+  color: var(--key-ink);
   cursor: pointer;
   touch-action: manipulation;
-  background: linear-gradient(#697487, #374155);
-  box-shadow: 0 4px 0 #1c2433;
+  background: var(--key);
+  box-shadow: 0 4px 0 var(--key-shade);
+  transition: transform .06s, box-shadow .06s;
 }
-.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #1c2433; }
-.btn.blue { background: linear-gradient(#1688ff, #005cea); box-shadow: 0 4px 0 #003984, 0 0 11px rgba(0, 110, 255, .45); }
-.btn.green { background: linear-gradient(#45d86b, #159944); box-shadow: 0 4px 0 #075e28; }
+.btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--key-shade); }
+.btn.primary { background: var(--yellow); box-shadow: 0 4px 0 #c4921d; }
+.btn.primary:active { box-shadow: 0 1px 0 #c4921d; }
+.btn.hot { background: var(--pink); color: #fff; box-shadow: 0 4px 0 #b83460; }
+.btn.hot:active { box-shadow: 0 1px 0 #b83460; }
+.btn.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--shell-hi); }
+.btn.ghost:active { transform: none; background: var(--shell-lo); }
 .btn.small { min-height: 38px; font-size: 15px; border-radius: 10px; }
-.btn:disabled { opacity: .42; filter: grayscale(.65); box-shadow: none; transform: none; cursor: not-allowed; }
+.btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
 .input {
   width: 100%;
-  height: 46px;
-  border: 2px solid #456992;
-  border-radius: 12px;
-  background: #06111f;
-  color: #fff;
+  height: 48px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--lcd);
+  box-shadow: inset 0 3px 0 rgba(0, 0, 0, .35);
+  color: var(--lcd-ink);
   font: inherit;
   font-size: 18px;
-  font-weight: 800;
-  padding: 0 12px;
+  padding: 0 14px;
   outline: none;
   text-align: center;
 }
-.input:focus { border-color: var(--accent); }
+.input::placeholder { color: var(--lcd-dim); }
+.input:focus { box-shadow: inset 0 3px 0 rgba(0, 0, 0, .35), 0 0 0 3px var(--yellow); }
 
-/* 對話框 */
+/* 對話框：一塊機殼面板 */
 .dialog {
   position: fixed;
   inset: 0;
@@ -83,41 +103,53 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, .68);
+  background: rgba(20, 17, 40, .72);
   padding: 16px;
 }
 .dialogBox {
-  width: min(100%, 430px);
+  width: min(100%, 420px);
   max-height: 86vh;
   overflow: auto;
-  border: 2px solid var(--border);
-  border-radius: 16px;
-  background: linear-gradient(180deg, #0b1b31, #06101e);
-  box-shadow: 0 0 24px rgba(0, 120, 255, .35);
-  padding: 16px;
+  border-radius: 22px;
+  background: var(--shell);
+  box-shadow: inset 0 2px 0 var(--shell-hi), 0 18px 40px rgba(0, 0, 0, .45);
+  padding: 18px;
 }
 .dialogHead {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
-.dialogTitle { font-size: 22px; font-weight: 1000; }
-.dialogActions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-.dialogNote { font-size: 13px; line-height: 1.6; color: var(--muted); margin-top: 8px; }
+.dialogTitle { font-size: 21px; font-weight: 900; }
+.dialogBox > .input { margin-top: 4px; }
+.dialogActions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.dialogNote { font-size: 13px; font-weight: 400; line-height: 1.7; color: var(--ink-soft); margin-top: 10px; }
 
-/* 排行榜 */
+/* 排行榜：放在螢幕裡 */
+.screenPanel {
+  border-radius: 12px;
+  background: var(--lcd);
+  box-shadow: inset 0 0 0 4px var(--bezel);
+  padding: 8px 14px;
+}
 .leaderRow {
   display: grid;
-  grid-template-columns: 38px 1fr auto;
+  grid-template-columns: 34px 1fr auto;
   gap: 8px;
-  align-items: center;
-  border-bottom: 1px solid rgba(180, 205, 240, .25);
-  padding: 8px 2px;
-  font-weight: 800;
+  align-items: baseline;
+  padding: 9px 0;
+  color: var(--lcd-ink);
+  border-bottom: 1px dashed var(--lcd-line);
 }
-.leaderRow.header { color: var(--accent); font-size: 13px; border-bottom-color: rgba(180, 205, 240, .45); }
+.leaderRow:last-child { border-bottom: 0; }
+.leaderRank { font-family: var(--pixel); color: var(--lcd-dim); }
+.leaderRow:nth-child(1) .leaderRank { color: var(--yellow); }
 .leaderName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.leaderMeta { font-size: 11px; color: var(--muted); margin-left: 6px; }
-.leaderScore { color: var(--gold); }
+.leaderMeta { font-size: 11px; font-weight: 400; color: var(--lcd-dim); margin-left: 6px; }
+.leaderScore { font-family: var(--pixel); color: var(--yellow); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

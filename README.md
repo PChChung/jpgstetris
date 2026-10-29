@@ -18,6 +18,7 @@ games/tetris/
   engine.js           規則（7-bag、SRS 旋轉、鎖定延遲、垃圾行），不碰 DOM
   render.js           canvas 繪圖
   battle.js           對戰房間（Realtime Presence + Broadcast）
+  challenge.js        關卡挑戰：20 關的資料、過關判定、星等，進度存在瀏覽器
   main.js             操作、畫面流程
 supabase/
   001_game_library.sql        新排行榜表與 submit_score()，並搬移舊資料

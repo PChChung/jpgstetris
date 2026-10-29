@@ -3,52 +3,86 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<meta name="theme-color" content="#071120" />
+<meta name="theme-color" content="#3a3366" />
 <title>小遊戲庫</title>
 <link rel="stylesheet" href="shared/base.css" />
 <style>
-.page { max-width: 760px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 28px) 16px 40px; }
-.hero { text-align: center; margin-bottom: 26px; }
-.hero h1 { margin: 0; font-size: clamp(30px, 8vw, 44px); font-weight: 1000; letter-spacing: 3px; text-shadow: 0 0 18px rgba(80, 150, 255, .8); }
-.hero p { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
-.player { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 14px; color: var(--accent); }
-.player button { background: none; border: 1px solid rgba(155, 185, 225, .5); color: var(--text); border-radius: 999px; padding: 4px 12px; font: inherit; font-size: 13px; cursor: pointer; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 14px; }
-.card { position: relative; display: flex; flex-direction: column; gap: 10px; border: 2px solid var(--border); border-radius: 16px; padding: 16px; background: linear-gradient(180deg, rgba(11, 27, 49, .95), rgba(6, 16, 30, .98)); box-shadow: 0 0 16px rgba(0, 127, 255, .18); color: inherit; text-decoration: none; }
-.card::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; border-radius: 14px 14px 0 0; background: var(--card-accent); }
-.cardTop { display: flex; align-items: center; gap: 12px; }
-.cardIcon { width: 48px; height: 48px; display: grid; place-items: center; font-size: 28px; border-radius: 12px; background: rgba(255, 255, 255, .06); }
-.cardTitle { font-size: 21px; font-weight: 1000; }
-.cardBest { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.cardBest b { color: var(--gold); }
-.cardDesc { font-size: 14px; line-height: 1.6; color: #d8e2f0; margin: 0; }
-.tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.tag { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid rgba(155, 185, 225, .4); color: var(--accent); }
-.cardActions { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: auto; }
-.cardActions .btn { min-height: 44px; display: grid; place-items: center; text-decoration: none; }
-.soon { opacity: .55; border-style: dashed; justify-content: center; align-items: center; text-align: center; min-height: 180px; color: var(--muted); font-weight: 800; }
+.page { max-width: 760px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 32px) 16px 48px; }
+.hero { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; margin-bottom: 28px; }
+.hero h1 { margin: 0; font-size: clamp(34px, 9vw, 48px); font-weight: 900; letter-spacing: 3px; line-height: 1; }
+.hero p { margin: 10px 0 0; font-size: 14px; font-weight: 400; color: var(--ink-soft); }
+.player { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-soft); }
+.player b { color: var(--ink); }
+
+/* 架子：卡帶排在一條深色層板上 */
+.shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 22px 18px; padding: 0 4px 22px; border-bottom: 10px solid var(--shell-lo); }
+
+/* 卡帶：淺灰塑膠殼、右上角斜切、上緣防滑紋、貼一張標籤 */
+.cart {
+  --cut: 26px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 14px 14px;
+  background: #d9d6e6;
+  color: var(--key-ink);
+  clip-path: polygon(0 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% 100%, 0 100%);
+  border-radius: 10px 0 12px 12px;
+  box-shadow: inset 0 -6px 0 #b4b0c8;
+}
+.cart::before {
+  content: "";
+  position: absolute;
+  top: 8px; left: 18px; right: calc(var(--cut) + 18px);
+  height: 10px;
+  background: repeating-linear-gradient(90deg, #b4b0c8 0 3px, transparent 3px 8px);
+}
+.label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 6px;
+  background: var(--lcd);
+  color: var(--lcd-ink);
+  box-shadow: inset 0 0 0 3px var(--label-accent);
+}
+.art { display: grid; gap: 2px; }
+.artRow { display: flex; gap: 2px; }
+.artCell { width: 9px; height: 9px; border-radius: 2px; }
+.cartTitle { font-size: 22px; font-weight: 900; line-height: 1.2; }
+.cartTags { font-size: 12px; font-weight: 400; color: var(--lcd-dim); margin-top: 4px; }
+.cartDesc { font-size: 14px; font-weight: 400; line-height: 1.7; margin: 12px 2px 0; }
+.cartFoot { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-top: 14px; padding-bottom: 6px; }
+.cartFoot .btn { display: grid; place-items: center; text-decoration: none; min-height: 46px; }
+.cartFoot .rank { background: var(--shell); color: var(--ink); box-shadow: 0 4px 0 var(--shell-lo); padding: 0 14px; }
+.cartFoot .rank:active { box-shadow: 0 1px 0 var(--shell-lo); }
+.best { font-size: 12px; font-weight: 400; color: #5d5a78; margin: 10px 2px 0; }
+.best b { font-family: var(--pixel); font-weight: 700; color: var(--key-ink); }
+
+.slot { display: grid; place-items: center; min-height: 220px; border-radius: 12px; border: 3px dashed var(--shell-hi); color: var(--ink-soft); font-size: 14px; text-align: center; padding: 20px; }
 </style>
 </head>
 <body>
 <main class="page">
   <header class="hero">
-    <h1>小遊戲庫</h1>
-    <p>打開就能玩，手機、平板、電腦都適用</p>
-    <div class="player">玩家：<span id="playerName">未設定</span><button id="renameBtn" type="button">修改</button></div>
+    <div>
+      <h1>小遊戲庫</h1>
+      <p>打開就能玩，手機、平板、電腦都適用</p>
+    </div>
+    <div class="player">玩家 <b id="playerName">未設定</b><button class="btn ghost small" id="renameBtn" type="button">改名稱</button></div>
   </header>
-  <section class="grid" id="gameGrid"></section>
+  <section class="shelf" id="shelf" aria-label="遊戲列表"></section>
 </main>
 <script type="module">
 import { GAMES } from './shared/games.js';
 import { getBestScore, getPlayerName } from './shared/player.js';
 import { askName, openLeaderboard } from './shared/ui.js';
 
-const grid = document.getElementById('gameGrid');
+const COLORS = { I: '#4dd8ff', J: '#5b7cff', L: '#ff9a3c', O: '#ffd23f', S: '#5ee0a0', T: '#b57bff', Z: '#ff5c8a' };
+const shelf = document.getElementById('shelf');
 const nameEl = document.getElementById('playerName');
-
-function showName() {
-  nameEl.textContent = getPlayerName() || '未設定';
-}
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -57,33 +91,49 @@ function el(tag, className, text) {
   return node;
 }
 
-for (const game of GAMES) {
-  const card = el('article', 'card');
-  card.style.setProperty('--card-accent', game.accent);
-
-  const top = el('div', 'cardTop');
-  const titleWrap = el('div');
-  const best = el('div', 'cardBest', '本機最高分 ');
-  best.append(el('b', '', String(getBestScore(game.id))));
-  titleWrap.append(el('div', 'cardTitle', game.title), best);
-  top.append(el('div', 'cardIcon', game.icon), titleWrap);
-
-  const tags = el('div', 'tags');
-  game.tags.forEach((t) => tags.append(el('span', 'tag', t)));
-
-  const actions = el('div', 'cardActions');
-  const play = el('a', 'btn blue', '開始玩');
-  play.href = game.path;
-  const rank = el('button', 'btn', '🏆');
-  rank.type = 'button';
-  rank.title = '排行榜';
-  rank.onclick = () => openLeaderboard({ gameId: game.id, title: `${game.title}排行榜` });
-  actions.append(play, rank);
-
-  card.append(top, el('p', 'cardDesc', game.description), tags, actions);
-  grid.append(card);
+function drawArt(rows) {
+  const art = el('div', 'art');
+  art.setAttribute('aria-hidden', 'true');
+  rows.forEach((row) => {
+    const line = el('div', 'artRow');
+    [...row].forEach((c) => {
+      const cell = el('span', 'artCell');
+      if (COLORS[c]) cell.style.background = COLORS[c];
+      line.append(cell);
+    });
+    art.append(line);
+  });
+  return art;
 }
-grid.append(el('div', 'card soon', '更多遊戲製作中…'));
+
+function showName() {
+  nameEl.textContent = getPlayerName() || '未設定';
+}
+
+for (const game of GAMES) {
+  const cart = el('article', 'cart');
+
+  const label = el('div', 'label');
+  label.style.setProperty('--label-accent', game.accent);
+  const titleWrap = el('div');
+  titleWrap.append(el('div', 'cartTitle', game.title), el('div', 'cartTags', game.tags.join('、')));
+  label.append(drawArt(game.art ?? []), titleWrap);
+
+  const best = el('p', 'best', '本機最高分 ');
+  best.append(el('b', '', String(getBestScore(game.id))));
+
+  const foot = el('div', 'cartFoot');
+  const play = el('a', 'btn primary', '開始玩');
+  play.href = game.path;
+  const rank = el('button', 'btn rank', '排行榜');
+  rank.type = 'button';
+  rank.onclick = () => openLeaderboard({ gameId: game.id, title: `${game.title}排行榜` });
+  foot.append(play, rank);
+
+  cart.append(label, el('p', 'cartDesc', game.description), best, foot);
+  shelf.append(cart);
+}
+shelf.append(el('div', 'slot', '下一款遊戲製作中'));
 
 document.getElementById('renameBtn').onclick = async () => {
   await askName({ title: '修改玩家名稱', note: '排行榜與對戰都會使用這個名稱。' });

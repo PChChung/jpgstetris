@@ -55,10 +55,20 @@ export function attackFor(cleared) {
   return ATTACK[cleared] ?? 0;
 }
 
+// 固定種子的亂數：關卡每次重玩都是同一組方塊順序與垃圾行
+export function seededRandom(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 // 事件：change（畫面要更新）、lock({cleared})、attack(行數)、gameover
 export class TetrisGame {
-  constructor({ random = Math.random } = {}) {
-    this.random = random;
+  constructor() {
     this.listeners = {};
     this.reset();
   }
@@ -73,14 +83,22 @@ export class TetrisGame {
     (this.listeners[event] || []).forEach((fn) => fn(data));
   }
 
-  reset() {
+  // startLevel：起始速度；garbageRows：開局預擺在底部的垃圾行數
+  reset({ startLevel = 1, garbageRows = 0, random = Math.random } = {}) {
+    this.random = random;
+    this.startLevel = startLevel;
     this.board = emptyBoard();
+    for (let i = 0; i < garbageRows; i++) {
+      const hole = Math.floor(this.random() * COLS);
+      this.board[ROWS - 1 - i] = Array.from({ length: COLS }, (_, x) => (x === hole ? null : GARBAGE));
+    }
     this.bag = [];
     this.nextType = this.drawFromBag();
     this.piece = null;
     this.score = 0;
     this.lines = 0;
-    this.level = 1;
+    this.level = startLevel;
+    this.pieces = 0;
     this.over = false;
     this.flashRows = [];
     this.clearTimer = 0;
@@ -142,6 +160,10 @@ export class TetrisGame {
       }
     }
     return false;
+  }
+
+  get garbageLeft() {
+    return this.board.filter((row) => row.includes(GARBAGE)).length;
   }
 
   get grounded() {
@@ -239,6 +261,7 @@ export class TetrisGame {
       else this.board[p.y + y][p.x + x] = p.type;
     }));
     this.piece = null;
+    this.pieces++;
     if (lockedAboveTop) {
       this.finish();
       return;
@@ -265,7 +288,7 @@ export class TetrisGame {
     this.flashRows = [];
     this.score += LINE_SCORES[cleared];
     this.lines += cleared;
-    this.level = Math.floor(this.lines / 10) + 1;
+    this.level = this.startLevel + Math.floor(this.lines / 10);
     this.afterLock(cleared);
   }
 

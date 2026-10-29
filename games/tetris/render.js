@@ -1,22 +1,30 @@
 import { COLS, ROWS, GARBAGE, shapeOf } from './engine.js';
 
 export const COLORS = {
-  I: '#00d8ff', J: '#116dff', L: '#ff8d00', O: '#ffd51b', S: '#69e800', T: '#a027ff', Z: '#ff2c24',
-  [GARBAGE]: '#5d6678',
+  I: '#4dd8ff', J: '#5b7cff', L: '#ff9a3c', O: '#ffd23f', S: '#5ee0a0', T: '#b57bff', Z: '#ff5c8a',
+  [GARBAGE]: '#5a5f7a',
 };
 
+const LCD = '#111827';
+
+// 像積木一樣：上緣亮、下緣暗
 function drawCell(ctx, color, x, y, size) {
+  const px = x * size + 1;
+  const py = y * size + 1;
+  const s = size - 2;
+  const edge = Math.max(2, Math.round(size * 0.14));
   ctx.fillStyle = color;
-  ctx.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  ctx.strokeStyle = 'rgba(255,255,255,.45)';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(x * size + 1.5, y * size + 1.5, size - 3, size - 3);
+  ctx.fillRect(px, py, s, s);
+  ctx.fillStyle = 'rgba(255,255,255,.32)';
+  ctx.fillRect(px, py, s, edge);
+  ctx.fillStyle = 'rgba(0,0,0,.22)';
+  ctx.fillRect(px, py + s - edge, s, edge);
 }
 
 function drawGrid(ctx, size, alpha) {
-  ctx.fillStyle = '#030712';
+  ctx.fillStyle = LCD;
   ctx.fillRect(0, 0, COLS * size, ROWS * size);
-  ctx.strokeStyle = `rgba(145,165,195,${alpha})`;
+  ctx.strokeStyle = `rgba(120,140,190,${alpha})`;
   ctx.lineWidth = 1;
   // 線畫在格線內側半像素，最右、最下那條才不會被 canvas 邊界裁掉
   const w = COLS * size;
@@ -47,18 +55,15 @@ export function fitCanvas(canvas, maxW, maxH) {
 }
 
 export function drawBoard(ctx, game, size) {
-  drawGrid(ctx, size, 0.5);
+  drawGrid(ctx, size, 0.16);
   game.board.forEach((row, y) => row.forEach((c, x) => {
     if (c) drawCell(ctx, COLORS[c], x, y, size);
   }));
 
   if (game.flashRows.length) {
     game.flashRows.forEach((y) => {
-      ctx.fillStyle = 'rgba(255,255,255,.78)';
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
       ctx.fillRect(0, y * size, COLS * size, size);
-      ctx.strokeStyle = 'rgba(255,210,80,.95)';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(1, y * size + 1, COLS * size - 2, size - 2);
     });
   }
 
@@ -80,7 +85,7 @@ export function drawBoard(ctx, game, size) {
 
 // 對手小盤面：encoded 是 TetrisGame.encode() 的 200 字元字串
 export function drawMiniBoard(ctx, encoded, size) {
-  drawGrid(ctx, size, 0.23);
+  drawGrid(ctx, size, 0.1);
   if (!encoded) return;
   for (let i = 0; i < encoded.length; i++) {
     const c = encoded[i];
@@ -97,12 +102,10 @@ export function drawNext(ctx, type, width, height) {
   const size = Math.min(22, Math.floor(width / 4.5));
   const ox = (width - cols.length * size) / 2;
   const oy = (height - rows.length * size) / 2;
+  ctx.save();
+  ctx.translate(ox, oy);
   rows.forEach((row, y) => cols.forEach((cx, x) => {
-    if (row[cx]) {
-      ctx.fillStyle = COLORS[type];
-      ctx.fillRect(ox + x * size + 1, oy + y * size + 1, size - 2, size - 2);
-      ctx.strokeStyle = 'rgba(255,255,255,.45)';
-      ctx.strokeRect(ox + x * size + 1.5, oy + y * size + 1.5, size - 3, size - 3);
-    }
+    if (row[cx]) drawCell(ctx, COLORS[type], x, y, size);
   }));
+  ctx.restore();
 }

@@ -29,7 +29,7 @@ export function askName({ title = '輸入玩家名稱', note = '' } = {}) {
     input.value = getPlayerName();
     const actions = el('div', 'dialogActions');
     const cancel = el('button', 'btn', '取消');
-    const ok = el('button', 'btn blue', '確定');
+    const ok = el('button', 'btn primary', '確定');
     actions.append(cancel, ok);
     dlg.box.append(input);
     if (note) dlg.box.append(el('div', 'dialogNote', note));
@@ -64,16 +64,15 @@ export async function openLeaderboard({ gameId, title, formatMeta = () => '' }) 
     if (e.target === dlg.overlay) dlg.close();
   });
 
-  const header = el('div', 'leaderRow header');
-  header.append(el('div', '', '名次'), el('div', '', '玩家'), el('div', '', '分數'));
-  const rows = el('div');
+  const rows = el('div', 'screenPanel');
   const status = el('div', 'dialogNote', '讀取中...');
-  dlg.box.append(header, rows, status);
+  dlg.box.append(rows, status);
 
   try {
     const data = await fetchTopScores(gameId, 10);
     if (!data.length) {
-      status.textContent = '目前還沒有排行榜資料。';
+      rows.remove();
+      status.textContent = '還沒有人上榜，玩一局搶第一名。';
       return;
     }
     data.forEach((r, i) => {
@@ -81,10 +80,10 @@ export async function openLeaderboard({ gameId, title, formatMeta = () => '' }) 
       const name = el('div', 'leaderName', r.player_name);
       const meta = formatMeta(r);
       if (meta) name.append(el('span', 'leaderMeta', meta));
-      row.append(el('div', '', `#${i + 1}`), name, el('div', 'leaderScore', String(r.score)));
+      row.append(el('div', 'leaderRank', String(i + 1)), name, el('div', 'leaderScore', String(r.score)));
       rows.append(row);
     });
-    status.textContent = '只顯示前 10 名。';
+    status.textContent = '顯示前 10 名。';
   } catch (e) {
     status.textContent = '讀取失敗：' + e.message;
   }

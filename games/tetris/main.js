@@ -1,6 +1,10 @@
-import { TetrisGame } from './engine.js';
+import { TetrisGame, seededRandom } from './engine.js';
 import { fitCanvas, drawBoard, drawMiniBoard, drawNext } from './render.js';
 import { BattleRoom, makeRoomCode } from './battle.js';
+import {
+  LEVELS, loadProgress, saveResult, isUnlocked, totalStars, starText,
+  describeGoal, describeStars, gameOptions, evaluate, starsFor,
+} from './challenge.js';
 import { submitScore } from '../../shared/scores.js';
 import { getBestScore, setBestScore, getPlayerName, setPlayerName } from '../../shared/player.js';
 import { askName, openLeaderboard } from '../../shared/ui.js';
@@ -26,6 +30,11 @@ let paused = false;
 let countdown = 0;
 let lastTime = 0;
 let overlayAction = null;
+let overlaySecondary = null;
+
+let levelIndex = 0;
+let elapsed = 0;
+let goalSnapshot = '';
 
 let room = null;
 let round = 0;
@@ -64,24 +73,29 @@ function drawOpponent() {
   $('oppStats').innerHTML = `分數 ${opp?.s ?? 0}<br>行數 ${opp?.l ?? 0}`;
 }
 
-function showOverlay({ title, cls = '', score = null, extra = '', hint = '', action = null }) {
+function showOverlay({ title, cls = '', stars = null, score = null, extra = '', hint = '', action = null, secondary = null }) {
   const titleEl = $('resultTitle');
   titleEl.textContent = title;
   titleEl.className = `resultTitle ${cls}`;
+  $('resultStars').classList.toggle('hide', stars === null);
+  $('resultStars').textContent = stars === null ? '' : starText(stars);
   $('finalScoreLine').classList.toggle('hide', score === null);
   $('finalScore').textContent = score ?? '';
   $('extraScore').textContent = extra;
   $('overlayHint').textContent = hint;
-  const btn = $('overlayAction');
-  btn.classList.toggle('hide', !action);
-  if (action) btn.textContent = action.label;
+  [[$('overlayAction'), action], [$('overlaySecondary'), secondary]].forEach(([btn, a]) => {
+    btn.classList.toggle('hide', !a);
+    if (a) btn.textContent = a.label;
+  });
   overlayAction = action?.run ?? null;
+  overlaySecondary = secondary?.run ?? null;
   $('overlay').classList.add('show');
 }
 
 function hideOverlay() {
   $('overlay').classList.remove('show');
   overlayAction = null;
+  overlaySecondary = null;
 }
 
 function setOverlayHint(text, keepAction = true) {
@@ -95,16 +109,20 @@ function setOverlayHint(text, keepAction = true) {
 function setModeUI() {
   const battle = mode === 'battle';
   $('oppCard').classList.toggle('hide', !battle);
-  $('bestCard').classList.toggle('hide', battle);
+  $('goalCard').classList.toggle('hide', mode !== 'challenge');
+  $('bestCard').classList.toggle('hide', mode !== 'single');
   $('restartBtn').disabled = battle;
   $('pauseBtn').disabled = battle;
-  $('modeTag').textContent = battle ? `對戰 ${room?.code ?? ''} 第${round}局` : '單人模式';
+  $('modeTag').textContent = {
+    single: '單人模式',
+    challenge: `第 ${levelIndex + 1} 關　${LEVELS[levelIndex].name}`,
+    battle: `對戰 ${room?.code ?? ''}　第 ${round} 局`,
+  }[mode];
   $('bestScore').textContent = getBestScore(GAME_ID);
 }
 
 function showScreen(name) {
-  $('menu').classList.toggle('hide', name !== 'menu');
-  $('lobby').classList.toggle('hide', name !== 'lobby');
+  ['menu', 'levels', 'lobby'].forEach((id) => $(id).classList.toggle('hide', name !== id));
 }
 
 // ---------- 主迴圈 ----------
@@ -119,6 +137,10 @@ function frame(t) {
       else hideOverlay();
     } else {
       game.update(dt);
+      if (mode === 'challenge' && running) {
+        elapsed += Math.min(dt, 100);
+        checkChallenge();
+      }
     }
   }
   if (game.version !== renderedVersion) {
@@ -153,10 +175,10 @@ function newSingleGame() {
 }
 
 function togglePause() {
-  if (mode !== 'single' || !running) return;
+  if (mode === 'battle' || !running) return;
   paused = !paused;
   $('pauseBtn').textContent = paused ? '▶' : 'Ⅱ';
-  if (paused) showOverlay({ title: '暫停', cls: 'count', hint: '按 ▶ 繼續', action: { label: '繼續', run: togglePause } });
+  if (paused) showOverlay({ title: '暫停中', cls: 'text', action: { label: '繼續', run: togglePause } });
   else hideOverlay();
 }
 
@@ -187,6 +209,104 @@ async function uploadScore() {
   } catch (e) {
     setOverlayHint('排行榜上傳失敗：' + e.message);
   }
+}
+
+// ---------- 關卡挑戰 ----------
+
+function showLevels() {
+  leaveRoom();
+  running = false;
+  mode = 'challenge';
+  hideOverlay();
+  const progress = loadProgress();
+  $('starTotal').textContent = `★ ${totalStars(progress)} / ${LEVELS.length * 3}`;
+  const grid = $('levelGrid');
+  grid.replaceChildren();
+  LEVELS.forEach((level, i) => {
+    const stars = progress.stars[i] ?? 0;
+    const tile = document.createElement('button');
+    tile.className = `levelTile${stars ? ' cleared' : ''}`;
+    tile.disabled = !isUnlocked(progress, i);
+    tile.setAttribute('aria-label', `第 ${i + 1} 關 ${level.name}${tile.disabled ? '，未解鎖' : `，${stars} 星`}`);
+    const no = document.createElement('span');
+    no.className = 'levelNo';
+    no.textContent = i + 1;
+    const starLine = document.createElement('span');
+    starLine.className = 'levelStars';
+    starLine.textContent = tile.disabled ? '🔒' : starText(stars);
+    tile.append(no, starLine);
+    tile.onclick = () => openLevel(i);
+    grid.append(tile);
+  });
+  showScreen('levels');
+}
+
+// 先顯示目標說明，按「開始」才計時
+function openLevel(index) {
+  levelIndex = index;
+  mode = 'challenge';
+  const level = LEVELS[index];
+  const { startLevel, garbageRows, seed } = gameOptions(level, index);
+  game.reset({ startLevel, garbageRows, random: seededRandom(seed) });
+  elapsed = 0;
+  goalSnapshot = '';
+  running = false;
+  paused = false;
+  countdown = 0;
+  $('pauseBtn').textContent = 'Ⅱ';
+  showScreen(null);
+  setModeUI();
+  $('goalText').textContent = describeGoal(level);
+  updateGoal(evaluate(level, game, 0));
+  const best = loadProgress().stars[index] ?? 0;
+  showOverlay({
+    title: level.name,
+    cls: 'text',
+    extra: describeGoal(level),
+    hint: `${describeStars(level)}${best ? `\n目前最佳 ${starText(best)}` : ''}`,
+    action: { label: '開始', run: () => { hideOverlay(); running = true; } },
+    secondary: { label: '選其他關卡', run: showLevels },
+  });
+}
+
+function updateGoal(result) {
+  const snapshot = result.progress + result.sub;
+  if (snapshot === goalSnapshot) return;
+  goalSnapshot = snapshot;
+  $('goalProgress').textContent = result.progress;
+  $('goalSub').innerHTML = result.sub;
+}
+
+function checkChallenge() {
+  if (mode !== 'challenge' || !running || game.over || game.flashRows.length) return;
+  const level = LEVELS[levelIndex];
+  const result = evaluate(level, game, elapsed);
+  updateGoal(result);
+  if (result.status === 'won') finishChallenge(true);
+  else if (result.status === 'lost') finishChallenge(false, result.reason);
+}
+
+function finishChallenge(won, reason = '') {
+  running = false;
+  const level = LEVELS[levelIndex];
+  const retry = { label: '再試一次', run: () => openLevel(levelIndex) };
+  if (!won) {
+    showOverlay({ title: '挑戰失敗', cls: 'text', extra: reason, action: retry, secondary: { label: '選其他關卡', run: showLevels } });
+    return;
+  }
+  const stars = starsFor(level, game, elapsed);
+  const best = saveResult(levelIndex, stars).stars[levelIndex];
+  const hasNext = levelIndex + 1 < LEVELS.length;
+  const metric = level.goal === 'score' ? `用了 ${Math.ceil(elapsed / 1000)} 秒` : `用了 ${game.pieces} 顆方塊`;
+  showOverlay({
+    title: '過關',
+    cls: 'win',
+    stars,
+    extra: metric,
+    hint: stars < 3 ? describeStars(level) : (hasNext ? '' : '全部關卡都過了！'),
+    action: hasNext ? { label: '下一關', run: () => openLevel(levelIndex + 1) } : { label: '回到選關', run: showLevels },
+    secondary: stars < 3 || best < 3 ? retry : { label: '選其他關卡', run: showLevels },
+  });
 }
 
 // ---------- 對戰模式 ----------
@@ -343,6 +463,7 @@ function onOpponentLeft() {
 
 // 對戰中按返回視同認輸，回到大廳（仍留在房間）
 function backFromGame() {
+  if (mode === 'challenge') return showLevels();
   if (mode === 'single') {
     running = false;
     hideOverlay();
@@ -360,8 +481,12 @@ function backFromGame() {
 
 game.on('gameover', () => {
   if (mode === 'single') finishSingle();
+  else if (mode === 'challenge') {
+    if (running) finishChallenge(false, '方塊堆到頂了');
+  }
   else finishBattle();
 });
+game.on('lock', checkChallenge);
 game.on('attack', (rows) => {
   if (mode === 'battle' && room) room.send('attack', { round, n: rows });
 });
@@ -458,14 +583,23 @@ document.addEventListener('keydown', (e) => {
 });
 
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && mode === 'single' && running && !paused) togglePause();
+  if (document.hidden && mode !== 'battle' && running && !paused) togglePause();
 });
 
 $('singleBtn').onclick = startSingle;
+$('challengeBtn').onclick = showLevels;
+$('levelsBack').onclick = () => {
+  mode = 'single';
+  showScreen('menu');
+};
+$('overlaySecondary').onclick = () => overlaySecondary?.();
 $('battleBtn').onclick = showLobby;
 $('menuRankBtn').onclick = openRank;
 $('rankBtn').onclick = openRank;
-$('restartBtn').onclick = () => mode === 'single' && newSingleGame();
+$('restartBtn').onclick = () => {
+  if (mode === 'single') newSingleGame();
+  else if (mode === 'challenge') openLevel(levelIndex);
+};
 $('pauseBtn').onclick = togglePause;
 $('backBtn').onclick = backFromGame;
 $('overlayAction').onclick = () => overlayAction?.();
