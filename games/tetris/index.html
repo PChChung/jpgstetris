@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="俄羅斯方塊" />
+<meta name="theme-color" content="#071120" />
+<title>俄羅斯方塊</title>
+<link rel="stylesheet" href="../../shared/base.css" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="modal" id="menu">
+  <div class="box">
+    <div class="boxTitle">俄羅斯方塊</div>
+    <div class="menuGrid">
+      <button class="btn blue" id="singleBtn">🎮 單人模式</button>
+      <button class="btn green" id="battleBtn">⚔️ 玩家對戰</button>
+      <button class="btn" id="menuRankBtn">🏆 排行榜</button>
+      <a class="btn" href="../../">‹ 返回遊戲庫</a>
+    </div>
+    <div class="small">鍵盤：← → 移動　↑／空白鍵 旋轉　↓ 下移　Enter 落下　P 暫停</div>
+  </div>
+</div>
+
+<div class="modal hide" id="lobby">
+  <div class="box">
+    <div class="boxTitle">玩家對戰</div>
+    <div id="lobbyJoin">
+      <div class="fieldLabel">玩家名稱</div>
+      <input id="playerNameInput" class="input" maxlength="16" placeholder="玩家" />
+      <button id="createRoom" class="btn blue lobbyBtn">建立房間</button>
+      <div class="fieldLabel">加入房間代碼</div>
+      <input id="joinCode" class="input" maxlength="6" placeholder="ABC123" autocomplete="off" />
+      <button id="joinRoom" class="btn green lobbyBtn">加入房間</button>
+    </div>
+    <div id="lobbyWaiting" class="hide">
+      <div class="fieldLabel" style="text-align:center">房間代碼</div>
+      <div class="roomCodeWrap"><div id="roomCodeView" class="roomCode">------</div><button id="copyRoom" class="btn small">複製</button></div>
+      <div class="playerList" id="playerList">等待玩家加入...</div>
+      <button id="startBattle" class="btn blue lobbyBtn" disabled>開始遊戲</button>
+    </div>
+    <button id="backMenu" class="btn lobbyBtn">返回主選單</button>
+    <div class="status" id="lobbyStatus"></div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <div class="topbar">
+    <button class="iconBtn" id="backBtn" title="返回選單" aria-label="返回選單">‹</button>
+    <button class="iconBtn" id="restartBtn" title="重新開始" aria-label="重新開始">↻</button>
+    <div class="title">俄羅斯方塊<div id="modeTag" class="subtitle">單人模式</div></div>
+    <button class="iconBtn" id="rankBtn" title="排行榜" aria-label="排行榜">🏆</button>
+    <button class="iconBtn" id="pauseBtn" title="暫停" aria-label="暫停">Ⅱ</button>
+  </div>
+  <div class="game">
+    <div class="boardWrap" id="touchArea">
+      <canvas id="board"></canvas>
+      <div class="garbageMeter" id="garbageMeter"></div>
+      <div id="overlay" class="overlay">
+        <div>
+          <div id="resultTitle" class="resultTitle">GAME OVER</div>
+          <div class="overScore" id="finalScoreLine">分數：<span id="finalScore">0</span></div>
+          <div class="overScore" id="extraScore"></div>
+          <div class="hint" id="overlayHint"></div>
+          <button id="overlayAction" class="btn blue hide">再玩一次</button>
+        </div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="card stats">
+        <div><div class="label">分數</div><div id="score" class="value">0</div></div><hr>
+        <div><div class="label">行數</div><div id="lines" class="value" style="color:var(--green)">0</div></div><hr>
+        <div><div class="label">等級</div><div id="level" class="value" style="color:var(--cyan)">1</div></div>
+      </div>
+      <div class="card"><div class="miniTitle">下一個</div><canvas id="next" class="nextCanvas" width="100" height="66"></canvas></div>
+      <div class="card hide" id="oppCard">
+        <div class="miniTitle">對手</div>
+        <div id="oppName" class="oppInfo">等待中</div>
+        <canvas id="oppBoard" class="oppCanvas" width="80" height="160"></canvas>
+        <div id="oppStats" class="oppInfo">分數 0<br>行數 0</div>
+      </div>
+      <div class="card" id="bestCard">
+        <div class="miniTitle">最高分</div>
+        <div id="bestScore" class="value" style="font-size:24px">0</div>
+        <div class="oppInfo">Game Over 後自動上傳排行榜</div>
+      </div>
+    </div>
+  </div>
+  <div class="controls">
+    <button class="padBtn" id="leftBtn" aria-label="左移">←</button>
+    <button class="padBtn" id="rotateBtn" aria-label="旋轉">↻</button>
+    <button class="padBtn" id="rightBtn" aria-label="右移">→</button>
+  </div>
+  <div class="controlsBottom">
+    <button class="padBtn" id="downBtn" aria-label="下移">↓</button>
+    <button class="padBtn" id="dropBtn">落下</button>
+  </div>
+</div>
+<script type="module" src="main.js"></script>
+</body>
+</html>
