@@ -1,4 +1,4 @@
-import { COLS, ROWS, GARBAGE, shapeOf } from './engine.js?v=202610300024';
+import { COLS, ROWS, GARBAGE, shapeOf } from './engine.js?v=202610300028';
 
 export const COLORS = {
   I: '#4dd8ff', J: '#5b7cff', L: '#ff9a3c', O: '#ffd23f', S: '#5ee0a0', T: '#b57bff', Z: '#ff5c8a',

@@ -1,6 +1,6 @@
-import { DotMaze, W, H } from './game.js?v=202610300024';
-import { LEVELS, describeGoal, STAR_RULE, starsFor } from './levels.js?v=202610300024';
-import { trackViewport, bindHold, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js?v=202610300024';
+import { DotMaze, W, H } from './game.js?v=202610300028';
+import { LEVELS, describeGoal, STAR_RULE, starsFor } from './levels.js?v=202610300028';
+import { trackViewport, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js?v=202610300028';
 
 const STICK_DEADZONE = 12; // 手指離開按下的位置多遠才算有方向
 const STICK_RANGE = 36;    // 超過這個距離，搖桿中心就跟著手指移動
@@ -147,10 +147,42 @@ stage.addEventListener('pointermove', (e) => {
   stickEl.classList.remove('show');
 }));
 
-bindHold($('upBtn'), () => steer(0, -1));
-bindHold($('downBtn'), () => steer(0, 1));
-bindHold($('leftBtn'), () => steer(-1, 0));
-bindHold($('rightBtn'), () => steer(1, 0));
+// 十字鍵整塊都是感應區：依手指偏向中心的哪一邊決定方向，角落空白處也算；按著滑動可以直接換方向
+const dpad = $('dpad');
+const PAD_KEYS = {
+  up: { el: $('upBtn'), dir: [0, -1] },
+  down: { el: $('downBtn'), dir: [0, 1] },
+  left: { el: $('leftBtn'), dir: [-1, 0] },
+  right: { el: $('rightBtn'), dir: [1, 0] },
+};
+let padPressed = false;
+function padSteer(e) {
+  const rect = dpad.getBoundingClientRect();
+  const dx = e.clientX - (rect.left + rect.width / 2);
+  const dy = e.clientY - (rect.top + rect.height / 2);
+  if (Math.hypot(dx, dy) < rect.width * 0.1) return;
+  const name = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+  Object.entries(PAD_KEYS).forEach(([k, v]) => v.el.classList.toggle('holding', k === name));
+  steer(...PAD_KEYS[name].dir);
+}
+function padRelease() {
+  padPressed = false;
+  Object.values(PAD_KEYS).forEach((v) => v.el.classList.remove('holding'));
+}
+dpad.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  padPressed = true;
+  try {
+    dpad.setPointerCapture(e.pointerId);
+  } catch {
+    // 拿不到指標也照樣能用
+  }
+  padSteer(e);
+}, { passive: false });
+dpad.addEventListener('pointermove', (e) => {
+  if (padPressed) padSteer(e);
+});
+['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => dpad.addEventListener(ev, padRelease));
 
 const KEYS = {
   arrowup: [0, -1], w: [0, -1],

@@ -7,13 +7,16 @@
 <meta name="apple-mobile-web-app-title" content="光點迷宮" />
 <meta name="theme-color" content="#3a3366" />
 <title>光點迷宮</title>
-<link rel="stylesheet" href="../../shared/base.css?v=202610300024" />
-<link rel="stylesheet" href="../../shared/handheld.css?v=202610300024" />
+<link rel="stylesheet" href="../../shared/base.css?v=202610300028" />
+<link rel="stylesheet" href="../../shared/handheld.css?v=202610300028" />
 <style>
 .screen { grid-template-rows: auto minmax(0, 1fr); }
 .lives { color: var(--pink); letter-spacing: 2px; }
 .freeze { color: #4dd8ff; }
 .pad { justify-content: center; }
+/* 迷宮只靠十字鍵操作，鍵做大一點；整塊十字鍵都是感應區 */
+.pad .dpad.cross { --k: clamp(52px, min(19vw, 9vh), 76px); touch-action: none; }
+.dpad.cross .dkey { pointer-events: none; }
 /* 按住拖曳時，在手指按下的位置顯示搖桿中心 */
 .stick { position: absolute; width: 72px; height: 72px; margin: -36px 0 0 -36px; border-radius: 50%; border: 2px solid rgba(217, 242, 228, .35); pointer-events: none; display: none; }
 .stick::after { content: ""; position: absolute; inset: 28px; border-radius: 50%; background: rgba(217, 242, 228, .45); }
@@ -56,7 +59,7 @@
   </section>
 
   <section class="pad" aria-label="操作按鈕">
-    <div class="dpad cross">
+    <div class="dpad cross" id="dpad">
       <button class="dkey up" id="upBtn" aria-label="上">▲</button>
       <button class="dkey left" id="leftBtn" aria-label="左">◀</button>
       <span class="dhub" aria-hidden="true"></span>
@@ -65,6 +68,6 @@
     </div>
   </section>
 </div>
-<script type="module" src="main.js?v=202610300024"></script>
+<script type="module" src="main.js?v=202610300028"></script>
 </body>
 </html>

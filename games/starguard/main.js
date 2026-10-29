@@ -1,6 +1,6 @@
-import { StarGuard, W, H } from './game.js?v=202610300024';
-import { LEVELS, describeGoal, STAR_RULE, starsFor } from './levels.js?v=202610300024';
-import { trackViewport, bindHold, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js?v=202610300024';
+import { StarGuard, W, H } from './game.js?v=202610300028';
+import { LEVELS, describeGoal, STAR_RULE, starsFor } from './levels.js?v=202610300028';
+import { trackViewport, bindHold, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js?v=202610300028';
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('canvas');

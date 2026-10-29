@@ -1,6 +1,6 @@
-import { BubbleGame, W, H } from './game.js?v=202610300024';
-import { LEVELS, describeGoal, starLimits, describeStars, starsFor } from './levels.js?v=202610300024';
-import { trackViewport, bindHold, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js?v=202610300024';
+import { BubbleGame, W, H } from './game.js?v=202610300028';
+import { LEVELS, describeGoal, starLimits, describeStars, starsFor } from './levels.js?v=202610300028';
+import { trackViewport, bindHold, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js?v=202610300028';
 
 const AIM_STEP = 0.03;
 

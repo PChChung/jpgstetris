@@ -55,7 +55,7 @@ export function attackFor(cleared) {
   return ATTACK[cleared] ?? 0;
 }
 
-export { seededRandom } from '../../shared/random.js?v=202610300024';
+export { seededRandom } from '../../shared/random.js?v=202610300028';
 
 // 事件：change（畫面要更新）、lock({cleared})、attack(行數)、gameover
 export class TetrisGame {

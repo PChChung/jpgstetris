@@ -1,4 +1,4 @@
-import { getSupabase } from './supabase.js?v=202610300024';
+import { getSupabase } from './supabase.js?v=202610300028';
 
 // 寫入一律走 submit_score()：資料庫會檢查分數是否合理，前端無法直接 insert
 export async function submitScore(gameId, playerName, score, meta = {}) {

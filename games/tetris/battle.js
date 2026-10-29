@@ -1,4 +1,4 @@
-import { getSupabase } from '../../shared/supabase.js?v=202610300024';
+import { getSupabase } from '../../shared/supabase.js?v=202610300028';
 
 // 對戰房間：Supabase Realtime 的 Presence 管理誰在房內，Broadcast 傳遊戲訊息，完全不寫資料庫
 const CHANNEL_PREFIX = 'tetris-room:';
