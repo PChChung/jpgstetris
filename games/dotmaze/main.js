@@ -1,8 +1,9 @@
-import { DotMaze, W, H } from './game.js';
-import { LEVELS, describeGoal, STAR_RULE, starsFor } from './levels.js';
-import { trackViewport, bindHold, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js';
+import { DotMaze, W, H } from './game.js?v=202610300024';
+import { LEVELS, describeGoal, STAR_RULE, starsFor } from './levels.js?v=202610300024';
+import { trackViewport, bindHold, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js?v=202610300024';
 
-const SWIPE = 18; // 手指移動超過幾像素算一次滑動
+const STICK_DEADZONE = 12; // 手指離開按下的位置多遠才算有方向
+const STICK_RANGE = 36;    // 超過這個距離，搖桿中心就跟著手指移動
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('canvas');
@@ -107,23 +108,44 @@ function steer(dx, dy) {
   if (running && !paused) game.setDirection(dx, dy);
 }
 
-// 滑動轉向：手指不用放開，連續滑可以連續轉彎
-let swipeFrom = null;
+// 按住拖曳轉向（像搖桿）：以按下的位置為中心，手指偏向哪邊就往哪邊走，按住不放就一直維持；
+// 手指拉太遠時中心會跟著移過去，所以往回拉一點點就能立刻掉頭
+let stick = null;
+const stickEl = $('stick');
+function showStick(x, y) {
+  const rect = stage.getBoundingClientRect();
+  stickEl.style.left = `${x - rect.left}px`;
+  stickEl.style.top = `${y - rect.top}px`;
+  stickEl.classList.add('show');
+}
 stage.addEventListener('pointerdown', (e) => {
   if (e.target.closest('button')) return;
-  swipeFrom = { x: e.clientX, y: e.clientY };
-  stage.setPointerCapture(e.pointerId);
+  stick = { x: e.clientX, y: e.clientY };
+  showStick(stick.x, stick.y);
+  try {
+    stage.setPointerCapture(e.pointerId);
+  } catch {
+    // 少數瀏覽器在觸控剛開始時拿不到指標，不影響操作
+  }
 });
 stage.addEventListener('pointermove', (e) => {
-  if (!swipeFrom) return;
-  const dx = e.clientX - swipeFrom.x;
-  const dy = e.clientY - swipeFrom.y;
-  if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE) return;
+  if (!stick) return;
+  let dx = e.clientX - stick.x;
+  let dy = e.clientY - stick.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < STICK_DEADZONE) return;
   if (Math.abs(dx) > Math.abs(dy)) steer(Math.sign(dx), 0);
   else steer(0, Math.sign(dy));
-  swipeFrom = { x: e.clientX, y: e.clientY };
+  if (dist > STICK_RANGE) {
+    stick.x = e.clientX - (dx / dist) * STICK_RANGE;
+    stick.y = e.clientY - (dy / dist) * STICK_RANGE;
+    showStick(stick.x, stick.y);
+  }
 });
-['pointerup', 'pointercancel'].forEach((ev) => stage.addEventListener(ev, () => { swipeFrom = null; }));
+['pointerup', 'pointercancel'].forEach((ev) => stage.addEventListener(ev, () => {
+  stick = null;
+  stickEl.classList.remove('show');
+}));
 
 bindHold($('upBtn'), () => steer(0, -1));
 bindHold($('downBtn'), () => steer(0, 1));

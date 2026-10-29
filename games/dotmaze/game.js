@@ -1,5 +1,5 @@
 // 光點迷宮：迷宮產生、移動、巡邏機 AI 與繪圖。地圖 15×19 格，每格 16，畫面 240×304
-import { seededRandom } from '../../shared/random.js';
+import { seededRandom } from '../../shared/random.js?v=202610300024';
 
 export const COLS = 15;
 export const ROWS = 19;
@@ -13,7 +13,8 @@ const LIVES = 3;
 const RELEASE_GAP = 2.5;         // 巡邏機依序離開基地的間隔
 const HOME_WAIT = 3;             // 被撞回基地後要等多久才出來
 const READY_TIME = 1.2;          // 每次開局／復活前的停頓
-const HUNT_TIME = 12;            // 追 12 秒後回各自角落巡邏 5 秒，讓玩家有喘息空檔
+const CORNER_GRACE = 0.4;        // 走過路口幾成格以內還能補轉彎
+const HUNT_TIME = 12;           // 追 12 秒後回各自角落巡邏 5 秒，讓玩家有喘息空檔
 const REST_TIME = 5;
 const START = { x: 7, y: 15 };
 const PEN = { x0: 6, x1: 8, y0: 8, y1: 10 };
@@ -160,7 +161,8 @@ export class DotMaze {
     return { x: a.x + a.dir.x * a.t, y: a.y + a.dir.y * a.t };
   }
 
-  // 玩家想走的方向，到下一個路口時生效；反方向立刻轉身
+  // 玩家想走的方向，到下一個路口時生效；反方向立刻轉身；
+  // 剛走過路口一點點才按轉彎，就退回路口直接轉進去
   setDirection(dx, dy) {
     this.wanted = { x: dx, y: dy };
     const p = this.player;
@@ -169,6 +171,12 @@ export class DotMaze {
       p.y += p.dir.y;
       p.dir = { x: dx, y: dy };
       p.t = 1 - p.t;
+      return;
+    }
+    const turning = (dx !== 0) !== (p.dir.x !== 0);
+    if (turning && p.t > 0 && p.t < CORNER_GRACE && this.open(p.x + dx, p.y + dy)) {
+      p.dir = { x: dx, y: dy };
+      p.t = 0;
     }
   }
 

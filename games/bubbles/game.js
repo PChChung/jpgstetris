@@ -1,5 +1,5 @@
 // 泡泡連發：遊戲規則與繪圖。畫面固定 240×360，由外層縮放
-import { seededRandom } from '../../shared/random.js';
+import { seededRandom } from '../../shared/random.js?v=202610300024';
 
 export const W = 240;
 export const H = 360;

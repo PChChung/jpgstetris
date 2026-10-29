@@ -1,13 +1,13 @@
-import { TetrisGame, seededRandom } from './engine.js';
-import { fitCanvas, drawBoard, drawMiniBoard, drawNext } from './render.js';
-import { BattleRoom, makeRoomCode } from './battle.js';
+import { TetrisGame, seededRandom } from './engine.js?v=202610300024';
+import { fitCanvas, drawBoard, drawMiniBoard, drawNext } from './render.js?v=202610300024';
+import { BattleRoom, makeRoomCode } from './battle.js?v=202610300024';
 import {
   LEVELS, loadProgress, saveResult, isUnlocked, totalStars, starText,
   describeGoal, describeStars, gameOptions, evaluate, starsFor,
-} from './challenge.js';
-import { submitScore } from '../../shared/scores.js';
-import { getBestScore, setBestScore, getPlayerName, setPlayerName } from '../../shared/player.js';
-import { askName, openLeaderboard } from '../../shared/ui.js';
+} from './challenge.js?v=202610300024';
+import { submitScore } from '../../shared/scores.js?v=202610300024';
+import { getBestScore, setBestScore, getPlayerName, setPlayerName } from '../../shared/player.js?v=202610300024';
+import { askName, openLeaderboard } from '../../shared/ui.js?v=202610300024';
 
 const GAME_ID = 'tetris';
 const COUNTDOWN_MS = 3000;

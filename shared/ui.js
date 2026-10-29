@@ -1,5 +1,5 @@
-import { fetchTopScores } from './scores.js';
-import { cleanName, getPlayerName, setPlayerName } from './player.js';
+import { fetchTopScores } from './scores.js?v=202610300024';
+import { cleanName, getPlayerName, setPlayerName } from './player.js?v=202610300024';
 
 function el(tag, className, text) {
   const node = document.createElement(tag);

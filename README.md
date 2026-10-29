@@ -37,6 +37,14 @@ supabase/
 3. 打開網站確認排行榜看得到舊資料、玩一局能上傳分數、兩支手機能對戰。
 4. 都正常後，執行 `supabase/002_retire_legacy_tables.sql` 關掉舊表權限。
 
+## 每次上線前
+
+```bash
+node tools/stamp-version.mjs
+```
+
+它會在所有 HTML 引用的 css/js 和 JS 之間的 import 後面加上 `?v=日期時間`。GitHub Pages 會讓瀏覽器快取 10 分鐘，不加版本號時，手機可能拿到「新頁面＋舊樣式」的混合版本。
+
 ## 本機測試
 
 ES 模組不能直接雙擊 HTML 開啟，要用本機伺服器：
