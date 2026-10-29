@@ -1,6 +1,6 @@
-import { DotMaze, W, H } from './game.js?v=202610300028';
-import { LEVELS, describeGoal, STAR_RULE, starsFor } from './levels.js?v=202610300028';
-import { trackViewport, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js?v=202610300028';
+import { DotMaze, W, H } from './game.js?v=202610300040';
+import { LEVELS, describeGoal, STAR_RULE, starsFor } from './levels.js?v=202610300040';
+import { trackViewport, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js?v=202610300040';
 
 const STICK_DEADZONE = 12; // 手指離開按下的位置多遠才算有方向
 const STICK_RANGE = 36;    // 超過這個距離，搖桿中心就跟著手指移動

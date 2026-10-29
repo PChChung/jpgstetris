@@ -1,5 +1,5 @@
 // 關卡挑戰：關卡資料、過關判定、星等與本機進度
-import { createProgress, starText } from '../../shared/handheld.js?v=202610300028';
+import { createProgress, starText } from '../../shared/handheld.js?v=202610300040';
 
 //
 // goal：lines＝消除 target 行；dig＝清光開局的 garbage 行垃圾；score＝timeLimit 秒內拿到 target 分

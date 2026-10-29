@@ -1,5 +1,5 @@
 // 光點迷宮：迷宮產生、移動、巡邏機 AI 與繪圖。地圖 15×19 格，每格 16，畫面 240×304
-import { seededRandom } from '../../shared/random.js?v=202610300028';
+import { seededRandom } from '../../shared/random.js?v=202610300040';
 
 export const COLS = 15;
 export const ROWS = 19;

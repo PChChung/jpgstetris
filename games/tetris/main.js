@@ -1,13 +1,13 @@
-import { TetrisGame, seededRandom } from './engine.js?v=202610300028';
-import { fitCanvas, drawBoard, drawMiniBoard, drawNext } from './render.js?v=202610300028';
-import { BattleRoom, makeRoomCode } from './battle.js?v=202610300028';
+import { TetrisGame, seededRandom } from './engine.js?v=202610300040';
+import { fitCanvas, drawBoard, drawMiniBoard, drawNext } from './render.js?v=202610300040';
+import { BattleRoom, makeRoomCode } from './battle.js?v=202610300040';
 import {
   LEVELS, loadProgress, saveResult, isUnlocked, totalStars, starText,
   describeGoal, describeStars, gameOptions, evaluate, starsFor,
-} from './challenge.js?v=202610300028';
-import { submitScore } from '../../shared/scores.js?v=202610300028';
-import { getBestScore, setBestScore, getPlayerName, setPlayerName } from '../../shared/player.js?v=202610300028';
-import { askName, openLeaderboard } from '../../shared/ui.js?v=202610300028';
+} from './challenge.js?v=202610300040';
+import { submitScore } from '../../shared/scores.js?v=202610300040';
+import { getBestScore, setBestScore, getPlayerName, setPlayerName } from '../../shared/player.js?v=202610300040';
+import { askName, openLeaderboard } from '../../shared/ui.js?v=202610300040';
 
 const GAME_ID = 'tetris';
 const COUNTDOWN_MS = 3000;

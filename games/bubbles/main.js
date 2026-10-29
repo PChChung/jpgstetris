@@ -1,8 +1,12 @@
-import { BubbleGame, W, H } from './game.js?v=202610300028';
-import { LEVELS, describeGoal, starLimits, describeStars, starsFor } from './levels.js?v=202610300028';
-import { trackViewport, bindHold, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js?v=202610300028';
+import { BubbleGame, W, H } from './game.js?v=202610300040';
+import { LEVELS, describeGoal, starLimits, describeStars, starsFor } from './levels.js?v=202610300040';
+import { trackViewport, bindHold, createProgress, renderLevelGrid, Overlay, fitStage, starText } from '../../shared/handheld.js?v=202610300040';
 
-const AIM_STEP = 0.03;
+// 按住左右鍵時瞄準線連續轉動：一開始慢、方便微調，按越久轉越快
+const AIM_TAP = 0.012;         // 輕點一下轉多少（弧度）
+const AIM_SPEED_MIN = 0.5;     // 弧度／秒
+const AIM_SPEED_MAX = 2.2;
+const AIM_ACCEL = 2.4;         // 每秒加速多少
 
 const $ = (id) => document.getElementById(id);
 const canvas = $('canvas');
@@ -18,6 +22,8 @@ let limits = [0, 0];
 let running = false;
 let paused = false;
 let lastTime = 0;
+let aimTurn = 0;      // +1 往左轉、-1 往右轉、0 不轉
+let aimHeldFor = 0;
 
 function resize() {
   scale = fitStage(canvas, stage, W, H);
@@ -33,7 +39,14 @@ function updateHud() {
 function frame(t) {
   const dt = lastTime ? (t - lastTime) / 1000 : 0;
   lastTime = t;
-  if (running && !paused) game.update(dt);
+  if (running && !paused) {
+    if (aimTurn) {
+      aimHeldFor += dt;
+      const speed = Math.min(AIM_SPEED_MAX, AIM_SPEED_MIN + aimHeldFor * AIM_ACCEL);
+      game.setAim(game.aim + aimTurn * speed * Math.min(dt, 0.05));
+    }
+    game.update(dt);
+  }
   game.draw(ctx);
   requestAnimationFrame(frame);
 }
@@ -52,6 +65,7 @@ function openLevel(index) {
   $('modeTag').textContent = `第 ${index + 1} 關　${level.name}`;
   game.start(level, index);
   limits = starLimits(game.initialCount);
+  aimTurn = 0;
   running = false;
   paused = false;
   $('pauseBtn').textContent = 'Ⅱ';
@@ -130,18 +144,38 @@ stage.addEventListener('pointerup', (e) => {
 });
 stage.addEventListener('pointercancel', () => { aiming = false; });
 
-bindHold($('leftBtn'), () => canPlay() && game.setAim(game.aim + AIM_STEP), { repeat: 30, delay: 120 });
-bindHold($('rightBtn'), () => canPlay() && game.setAim(game.aim - AIM_STEP), { repeat: 30, delay: 120 });
+function startTurn(dir) {
+  if (!canPlay()) return;
+  if (aimTurn !== dir) {
+    game.setAim(game.aim + dir * AIM_TAP);
+    aimHeldFor = 0;
+  }
+  aimTurn = dir;
+}
+function stopTurn(dir) {
+  if (aimTurn === dir) aimTurn = 0;
+}
+
+bindHold($('leftBtn'), () => startTurn(1), { onRelease: () => stopTurn(1) });
+bindHold($('rightBtn'), () => startTurn(-1), { onRelease: () => stopTurn(-1) });
 bindHold($('shootBtn'), () => canPlay() && game.shoot());
 bindHold($('swapBtn'), () => canPlay() && game.swap());
 
+const TURN_KEYS = { arrowleft: 1, a: 1, arrowright: -1, d: -1 };
+document.addEventListener('keyup', (e) => {
+  const dir = TURN_KEYS[e.key.toLowerCase()];
+  if (dir) stopTurn(dir);
+});
 document.addEventListener('keydown', (e) => {
   const key = e.key.toLowerCase();
   if (key === 'p') return togglePause();
+  if (TURN_KEYS[key]) {
+    e.preventDefault();
+    if (!e.repeat) startTurn(TURN_KEYS[key]);
+    return;
+  }
   if (!canPlay()) return;
   const actions = {
-    arrowleft: () => game.setAim(game.aim + AIM_STEP),
-    arrowright: () => game.setAim(game.aim - AIM_STEP),
     ' ': () => game.shoot(),
     arrowup: () => game.shoot(),
     enter: () => game.shoot(),
