@@ -1,4 +1,6 @@
 // 關卡挑戰：關卡資料、過關判定、星等與本機進度
+import { createProgress, starText } from '../../shared/handheld.js';
+
 //
 // goal：lines＝消除 target 行；dig＝清光開局的 garbage 行垃圾；score＝timeLimit 秒內拿到 target 分
 // speed：起始速度（同單人模式的等級）；pieceLimit / timeLimit：可省略
@@ -26,41 +28,12 @@ export const LEVELS = [
   { name: '終點', goal: 'lines', target: 40, speed: 10, stars: [110, 104] },
 ];
 
-const PROGRESS_KEY = 'smallgames.tetris.challenge';
-
-export function loadProgress() {
-  try {
-    const data = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
-    return { stars: data.stars ?? {} };
-  } catch {
-    return { stars: {} };
-  }
-}
-
-// 只保留最好的星等
-export function saveResult(index, stars) {
-  const progress = loadProgress();
-  if ((progress.stars[index] ?? 0) >= stars) return progress;
-  progress.stars[index] = stars;
-  try {
-    localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
-  } catch {
-    // 寫不進去就只在這次有效
-  }
-  return progress;
-}
-
-export function isUnlocked(progress, index) {
-  return index === 0 || (progress.stars[index - 1] ?? 0) > 0;
-}
-
-export function totalStars(progress) {
-  return Object.values(progress.stars).reduce((sum, n) => sum + n, 0);
-}
-
-export function starText(n) {
-  return '★'.repeat(n) + '☆'.repeat(3 - n);
-}
+export const progressStore = createProgress('tetris');
+export const loadProgress = progressStore.load;
+export const saveResult = progressStore.save;
+export const isUnlocked = progressStore.isUnlocked;
+export const totalStars = progressStore.total;
+export { starText };
 
 function formatTime(secs) {
   const s = Math.max(0, Math.ceil(secs));

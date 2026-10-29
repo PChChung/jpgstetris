@@ -79,6 +79,7 @@
 import { GAMES } from './shared/games.js';
 import { getBestScore, getPlayerName } from './shared/player.js';
 import { askName, openLeaderboard } from './shared/ui.js';
+import { createProgress } from './shared/handheld.js';
 
 const COLORS = { I: '#4dd8ff', J: '#5b7cff', L: '#ff9a3c', O: '#ffd23f', S: '#5ee0a0', T: '#b57bff', Z: '#ff5c8a' };
 const shelf = document.getElementById('shelf');
@@ -119,16 +120,27 @@ for (const game of GAMES) {
   titleWrap.append(el('div', 'cartTitle', game.title), el('div', 'cartTags', game.tags.join('、')));
   label.append(drawArt(game.art ?? []), titleWrap);
 
-  const best = el('p', 'best', '本機最高分 ');
-  best.append(el('b', '', String(getBestScore(game.id))));
+  const best = el('p', 'best');
+  if (game.leaderboard) {
+    best.append('本機最高分 ', el('b', '', String(getBestScore(game.id))), '　');
+  }
+  if (game.levels) {
+    const store = createProgress(game.id);
+    best.append('關卡 ', el('b', '', `★ ${store.total(store.load())} / ${game.levels * 3}`));
+  }
 
   const foot = el('div', 'cartFoot');
   const play = el('a', 'btn primary', '開始玩');
   play.href = game.path;
-  const rank = el('button', 'btn rank', '排行榜');
-  rank.type = 'button';
-  rank.onclick = () => openLeaderboard({ gameId: game.id, title: `${game.title}排行榜` });
-  foot.append(play, rank);
+  foot.append(play);
+  if (game.leaderboard) {
+    const rank = el('button', 'btn rank', '排行榜');
+    rank.type = 'button';
+    rank.onclick = () => openLeaderboard({ gameId: game.id, title: `${game.title}排行榜` });
+    foot.append(rank);
+  } else {
+    foot.style.gridTemplateColumns = '1fr';
+  }
 
   cart.append(label, el('p', 'cartDesc', game.description), best, foot);
   shelf.append(cart);

@@ -13,6 +13,8 @@ shared/
   player.js           玩家名稱、本機最高分
   ui.js               名稱輸入框、排行榜視窗
   base.css            共用色票與元件
+  handheld.css/.js    掌機外殼：頂列、螢幕、操作鍵、選關格子、結果訊息層、關卡進度
+  random.js           固定種子亂數（關卡每次重玩內容一樣）
   games.js            遊戲清單
 games/tetris/
   engine.js           規則（7-bag、SRS 旋轉、鎖定延遲、垃圾行），不碰 DOM
@@ -20,6 +22,8 @@ games/tetris/
   battle.js           對戰房間（Realtime Presence + Broadcast）
   challenge.js        關卡挑戰：20 關的資料、過關判定、星等，進度存在瀏覽器
   main.js             操作、畫面流程
+games/starguard/      星艦防線（射擊，20 波）：game.js 規則與繪圖、levels.js 隊形
+games/bubbles/        泡泡連發（益智，20 關）：game.js 規則與繪圖、levels.js 盤面設定
 supabase/
   001_game_library.sql        新排行榜表與 submit_score()，並搬移舊資料
   002_retire_legacy_tables.sql 新版上線後停用舊表
@@ -44,7 +48,7 @@ python -m http.server 5310
 
 ## 新增遊戲
 
-1. 建立 `games/<id>/index.html`，引用 `../../shared/base.css`。
+1. 建立 `games/<id>/index.html`，引用 `../../shared/base.css` 與 `../../shared/handheld.css`；選關、進度、結果畫面用 `shared/handheld.js`（可參考 `games/bubbles/main.js`）。
 2. 在 `shared/games.js` 加一筆。
 3. 要排行榜的話，在 `001_game_library.sql` 的 `submit_score()` 加上該遊戲的分數檢查，重新執行一次；前端呼叫 `submitScore('<id>', 名稱, 分數, meta)`。
 

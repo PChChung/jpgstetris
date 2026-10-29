@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#3a3366" />
 <title>俄羅斯方塊</title>
 <link rel="stylesheet" href="../../shared/base.css" />
+<link rel="stylesheet" href="../../shared/handheld.css" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -34,7 +35,7 @@
     </div>
     <div class="levelGrid" id="levelGrid"></div>
     <p class="small">過關解鎖下一關，用越少方塊或越短時間過關，星星越多。</p>
-    <button class="btn ghost lobbyBtn" id="levelsBack">返回主選單</button>
+    <button class="btn ghost wideBtn" id="levelsBack">返回主選單</button>
   </div>
 </div>
 
@@ -44,10 +45,10 @@
     <div id="lobbyJoin">
       <label class="fieldLabel" for="playerNameInput">你的名稱</label>
       <input id="playerNameInput" class="input" maxlength="16" placeholder="玩家" />
-      <button id="createRoom" class="btn primary lobbyBtn">建立房間</button>
+      <button id="createRoom" class="btn primary wideBtn">建立房間</button>
       <div class="divider">或輸入朋友的房號</div>
       <input id="joinCode" class="input codeInput" maxlength="6" placeholder="ABC123" autocomplete="off" aria-label="房號" />
-      <button id="joinRoom" class="btn lobbyBtn">加入房間</button>
+      <button id="joinRoom" class="btn wideBtn">加入房間</button>
     </div>
     <div id="lobbyWaiting" class="hide">
       <div class="roomCodeWrap">
@@ -55,9 +56,9 @@
         <button id="copyRoom" class="btn small">複製房號</button>
       </div>
       <div class="playerList" id="playerList"></div>
-      <button id="startBattle" class="btn primary lobbyBtn" disabled>開始遊戲</button>
+      <button id="startBattle" class="btn primary wideBtn" disabled>開始遊戲</button>
     </div>
-    <button id="backMenu" class="btn ghost lobbyBtn">返回主選單</button>
+    <button id="backMenu" class="btn ghost wideBtn">返回主選單</button>
     <div class="status" id="lobbyStatus"></div>
   </div>
 </div>
@@ -72,7 +73,7 @@
   </header>
 
   <section class="screen">
-    <div class="boardWrap" id="touchArea">
+    <div class="stage" id="touchArea">
       <canvas id="board"></canvas>
       <div class="garbageMeter" id="garbageMeter"></div>
       <div id="overlay" class="overlay">
@@ -127,8 +128,8 @@
       <button class="dkey down" id="downBtn" aria-label="下移">▼</button>
     </div>
     <div class="abKeys">
-      <button class="roundKey drop" id="dropBtn"><span>落下</span></button>
-      <button class="roundKey rotate" id="rotateBtn"><span>旋轉</span></button>
+      <button class="roundKey yellow low" id="rotateBtn"><span>旋轉</span></button>
+      <button class="roundKey pink" id="dropBtn"><span>落下</span></button>
     </div>
   </section>
 </div>

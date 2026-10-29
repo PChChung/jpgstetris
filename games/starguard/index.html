@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="星艦防線" />
+<meta name="theme-color" content="#3a3366" />
+<title>星艦防線</title>
+<link rel="stylesheet" href="../../shared/base.css" />
+<link rel="stylesheet" href="../../shared/handheld.css" />
+<style>
+.screen { grid-template-rows: auto minmax(0, 1fr); }
+.lives { color: var(--pink); letter-spacing: 2px; }
+.power { color: var(--cyan, #4dd8ff); }
+</style>
+</head>
+<body>
+<div class="modal" id="levels">
+  <div class="box">
+    <div class="boxHead">
+      <h1 class="boxTitle">星艦防線</h1>
+      <div class="starTotal" id="starTotal">★ 0 / 60</div>
+    </div>
+    <div class="levelGrid" id="levelGrid"></div>
+    <p class="small">手指在畫面上左右拖曳移動，會自動射擊。也可以用 ◀ ▶ 鍵或鍵盤方向鍵，P 暫停。</p>
+    <a class="btn ghost wideBtn block" href="../../">返回遊戲庫</a>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <header class="topbar">
+    <button class="iconBtn" id="backBtn" title="選關" aria-label="選關">‹</button>
+    <div class="modeTag" id="modeTag">星艦防線</div>
+    <button class="iconBtn" id="restartBtn" title="重新開始" aria-label="重新開始">↻</button>
+    <button class="iconBtn" id="pauseBtn" title="暫停" aria-label="暫停">Ⅱ</button>
+    <span></span>
+  </header>
+
+  <section class="screen">
+    <div class="hud">
+      <span>生命 <span class="lives" id="lives">♥♥♥</span></span>
+      <span class="power" id="power"></span>
+      <span>敵機<b id="enemiesLeft">0</b></span>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="canvas"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+  </section>
+
+  <section class="pad" aria-label="操作按鈕">
+    <div class="lrKeys">
+      <button class="dkey left" id="leftBtn" aria-label="左移">◀</button>
+      <button class="dkey right" id="rightBtn" aria-label="右移">▶</button>
+    </div>
+  </section>
+</div>
+<script type="module" src="main.js"></script>
+</body>
+</html>

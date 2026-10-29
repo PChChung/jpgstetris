@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="泡泡連發" />
+<meta name="theme-color" content="#3a3366" />
+<title>泡泡連發</title>
+<link rel="stylesheet" href="../../shared/base.css" />
+<link rel="stylesheet" href="../../shared/handheld.css" />
+<style>
+.screen { grid-template-rows: auto minmax(0, 1fr); }
+.dropWarn b { color: var(--pink); }
+</style>
+</head>
+<body>
+<div class="modal" id="levels">
+  <div class="box">
+    <div class="boxHead">
+      <h1 class="boxTitle">泡泡連發</h1>
+      <div class="starTotal" id="starTotal">★ 0 / 60</div>
+    </div>
+    <div class="levelGrid" id="levelGrid"></div>
+    <p class="small">手指在畫面上拖曳瞄準，放開就發射；同色三顆以上會消除，懸空的泡泡會一起掉落。也可以用 ◀ ▶ 微調、鍵盤空白鍵發射、X 交換。</p>
+    <a class="btn ghost wideBtn block" href="../../">返回遊戲庫</a>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <header class="topbar">
+    <button class="iconBtn" id="backBtn" title="選關" aria-label="選關">‹</button>
+    <div class="modeTag" id="modeTag">泡泡連發</div>
+    <button class="iconBtn" id="restartBtn" title="重新開始" aria-label="重新開始">↻</button>
+    <button class="iconBtn" id="pauseBtn" title="暫停" aria-label="暫停">Ⅱ</button>
+    <span></span>
+  </header>
+
+  <section class="screen">
+    <div class="hud">
+      <span>已射<b id="shots">0</b></span>
+      <span class="dropWarn">天花板 <b id="dropIn">0</b> 發後下降</span>
+      <span>剩<b id="left">0</b></span>
+    </div>
+    <div class="stage" id="stage">
+      <canvas id="canvas"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+  </section>
+
+  <section class="pad" aria-label="操作按鈕">
+    <div class="lrKeys">
+      <button class="dkey left" id="leftBtn" aria-label="往左瞄準">◀</button>
+      <button class="dkey right" id="rightBtn" aria-label="往右瞄準">▶</button>
+    </div>
+    <div class="abKeys">
+      <button class="roundKey pink low" id="swapBtn"><span>交換</span></button>
+      <button class="roundKey yellow" id="shootBtn"><span>發射</span></button>
+    </div>
+  </section>
+</div>
+<script type="module" src="main.js"></script>
+</body>
+</html>
